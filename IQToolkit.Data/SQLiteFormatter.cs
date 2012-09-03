@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Linq.Expressions;
 
-namespace IQToolkit.Data.SQLite
+namespace IQToolkit.Data
 {
     using IQToolkit.Data.Common;
 
@@ -17,7 +17,7 @@ namespace IQToolkit.Data.SQLite
 
         public static new string Format(Expression expression)
         {
-            return Format(expression, new SQLiteLanguage());
+            return Format(expression, new QueryLanguage());
         }
 
         public static string Format(Expression expression, QueryLanguage language)

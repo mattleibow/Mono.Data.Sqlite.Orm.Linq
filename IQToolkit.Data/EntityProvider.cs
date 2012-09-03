@@ -340,13 +340,7 @@ namespace IQToolkit.Data
 
         public static Type GetProviderType(string providerName)
         {
-            if (!string.IsNullOrEmpty(providerName))
-            {
-                var type = FindInstancesIn(typeof(EntityProvider), providerName).FirstOrDefault();
-                if (type != null)
-                    return type;
-            }
-            return null;
+			return typeof(SQLiteQueryProvider);
         }
 
         private static Type FindLoadedType(string typeName)

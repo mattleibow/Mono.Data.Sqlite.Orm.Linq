@@ -1,23 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using Mono.Data.Sqlite;
-using System.IO;
-using System.Linq;
-using System.Text;
-
-
-namespace IQToolkit.Data.SQLite
+﻿namespace IQToolkit.Data
 {
-    using IQToolkit.Data.Common;
+	using System;
+	using System.Collections.Generic;
+	using System.Data.Common;
 
-    public class SQLiteQueryProvider : DbEntityProvider
+	using Mono.Data.Sqlite;
+
+	using IQToolkit.Data.Common;
+
+	public class SQLiteQueryProvider : DbEntityProvider
     {
         Dictionary<QueryCommand, SqliteCommand> commandCache = new Dictionary<QueryCommand, SqliteCommand>();
 
 		public SQLiteQueryProvider(SqliteConnection connection, QueryMapping mapping, EntityPolicy policy)
-            : base(connection, SQLiteLanguage.Default, mapping, policy)
+            : base(connection, QueryLanguage.Default, mapping, policy)
         {
         }
 

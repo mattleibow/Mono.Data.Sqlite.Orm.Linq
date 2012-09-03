@@ -15,14 +15,36 @@ namespace IQToolkit.Data.Common
     /// <summary>
     /// Defines the language rules for the query provider
     /// </summary>
-    public abstract class QueryLanguage
-    {
-        public abstract DbTypeSystem TypeSystem { get; }
-        public abstract Expression GetGeneratedIdExpression(MemberInfo member);
+    public class QueryLanguage
+	{
+		private DbTypeSystem _typeSystem = new DbTypeSystem();
+
+		public DbTypeSystem TypeSystem
+		{
+			get { return _typeSystem; }
+		}
+
+		public Expression GetGeneratedIdExpression(MemberInfo member)
+		{
+			return new FunctionExpression(TypeHelper.GetMemberType(member), "last_insert_rowid()", null);
+		}
+
+		private static readonly char[] splitChars = new char[] { '.' };
 
         public virtual string Quote(string name)
         {
-            return name;
+			if (name.StartsWith("[") && name.EndsWith("]"))
+			{
+				return name;
+			}
+			else if (name.IndexOf('.') > 0)
+			{
+				return "[" + string.Join("].[", name.Split(splitChars, StringSplitOptions.RemoveEmptyEntries)) + "]";
+			}
+			else
+			{
+				return "[" + name + "]";
+			}
         }
 
         public virtual bool AllowsMultipleCommands
@@ -42,13 +64,13 @@ namespace IQToolkit.Data.Common
 
         public virtual Expression GetRowsAffectedExpression(Expression command)
         {
-            return new FunctionExpression(typeof(int), "@@ROWCOUNT", null);
+			return new FunctionExpression(typeof(int), "changes()", null);
         }
 
         public virtual bool IsRowsAffectedExpressions(Expression expression)
-        {
-            FunctionExpression fex = expression as FunctionExpression;
-            return fex != null && fex.Name == "@@ROWCOUNT";
+		{
+			FunctionExpression fex = expression as FunctionExpression;
+			return fex != null && fex.Name == "changes()";
         }
 
         public virtual Expression GetOuterJoinTest(SelectExpression select)
@@ -261,7 +283,9 @@ namespace IQToolkit.Data.Common
         {
             return new QueryLinguist(this, translator);
         }
-    }
+
+		public static readonly QueryLanguage Default = new QueryLanguage();
+	}
 
     public class QueryLinguist
     {
@@ -291,7 +315,10 @@ namespace IQToolkit.Data.Common
         /// <param name="expression"></param>
         /// <returns></returns>
         public virtual Expression Translate(Expression expression)
-        {
+		{   
+			// fix up any order-by's
+			expression = OrderByRewriter.Rewrite(this.Language, expression);
+
             // remove redundant layers again before cross apply rewrite
             expression = UnusedColumnRemover.Remove(expression);
             expression = RedundantColumnRemover.Remove(expression);
@@ -313,7 +340,10 @@ namespace IQToolkit.Data.Common
                 expression = RedundantColumnRemover.Remove(expression);
             }
 
-            return expression;
+			//expression = SkipToNestedOrderByRewriter.Rewrite(expression);
+			expression = UnusedColumnRemover.Remove(expression);
+
+			return expression;
         }
 
         /// <summary>
@@ -324,7 +354,7 @@ namespace IQToolkit.Data.Common
         public virtual string Format(Expression expression)
         {
             // use common SQL formatter by default
-            return SqlFormatter.Format(expression);
+			return SQLiteFormatter.Format(expression);
         }
 
         /// <summary>

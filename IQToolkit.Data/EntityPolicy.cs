@@ -1,20 +1,17 @@
 ﻿// Copyright (c) Microsoft Corporation.  All rights reserved.
 // This source code is made available under the terms of the Microsoft Public License (MS-PL)
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-
 namespace IQToolkit.Data
 {
-    using Common;
-    using Mapping;
+	using System;
+	using System.Collections;
+	using System.Collections.Generic;
+	using System.Linq.Expressions;
+	using System.Reflection;
+
+	using IQToolkit.Data.Common;
+
+	using ExpressionVisitor = IQToolkit.ExpressionVisitor;
 
 	/// <summary>
 	/// Defines query execution & materialization policies. 
@@ -38,24 +35,24 @@ namespace IQToolkit.Data
 
         public void Apply<TEntity>(Expression<Func<IEnumerable<TEntity>, IEnumerable<TEntity>>> fnApply)
         {
-            Apply((LambdaExpression)fnApply);
+            this.Apply((LambdaExpression)fnApply);
         }
 
         public void Include(MemberInfo member)
         {
-            Include(member, false);
+            this.Include(member, false);
         }
 
         public void Include(MemberInfo member, bool deferLoad)
         {
             this.included.Add(member);
             if (deferLoad)
-                Defer(member);
+                this.Defer(member);
         }
 
         public void IncludeWith(LambdaExpression fnMember)
         {
-            IncludeWith(fnMember, false);
+            this.IncludeWith(fnMember, false);
         }
 
         public void IncludeWith(LambdaExpression fnMember, bool deferLoad)
@@ -63,21 +60,21 @@ namespace IQToolkit.Data
             var rootMember = RootMemberFinder.Find(fnMember, fnMember.Parameters[0]);
             if (rootMember == null)
                 throw new InvalidOperationException("Subquery does not originate with a member access");
-            Include(rootMember.Member, deferLoad);
+            this.Include(rootMember.Member, deferLoad);
             if (rootMember != fnMember.Body)
             {
-                AssociateWith(fnMember);
+                this.AssociateWith(fnMember);
             }
         }
 
         public void IncludeWith<TEntity>(Expression<Func<TEntity, object>> fnMember)
         {
-            IncludeWith((LambdaExpression)fnMember, false);
+            this.IncludeWith((LambdaExpression)fnMember, false);
         }
 
         public void IncludeWith<TEntity>(Expression<Func<TEntity, object>> fnMember, bool deferLoad)
         {
-            IncludeWith((LambdaExpression)fnMember, deferLoad);
+            this.IncludeWith((LambdaExpression)fnMember, deferLoad);
         }
 
         private void Defer(MemberInfo member)
@@ -122,7 +119,7 @@ namespace IQToolkit.Data
 
         public void AssociateWith<TEntity>(Expression<Func<TEntity, IEnumerable>> memberQuery)
         {
-            AssociateWith((LambdaExpression)memberQuery);
+            this.AssociateWith((LambdaExpression)memberQuery);
         }
 
         class RootMemberFinder : ExpressionVisitor

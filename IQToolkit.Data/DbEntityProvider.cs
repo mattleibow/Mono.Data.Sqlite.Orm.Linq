@@ -18,7 +18,9 @@ namespace IQToolkit.Data
     using Common;
     using Mapping;
 
-    public class DbEntityProvider : EntityProvider
+    using Mono.Data.Sqlite;
+
+	public class DbEntityProvider : EntityProvider
     {
         private readonly DbConnection connection;
         DbTransaction transaction;
@@ -175,16 +177,7 @@ namespace IQToolkit.Data
 
         private static Type GetAdoConnectionType(Type providerType)
         {
-            // sniff constructors 
-            foreach (var con in providerType.GetConstructors())
-            {
-                foreach (var arg in con.GetParameters())
-                {
-                    if (arg.ParameterType.IsSubclassOf(typeof(DbConnection)))
-                        return arg.ParameterType;
-                }
-            }
-            return null;
+			return typeof(SqliteConnection);
         }
 
         protected bool ActionOpenedConnection
