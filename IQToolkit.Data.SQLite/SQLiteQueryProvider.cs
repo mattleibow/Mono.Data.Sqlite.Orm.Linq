@@ -16,7 +16,7 @@ namespace IQToolkit.Data.SQLite
     {
         Dictionary<QueryCommand, SqliteCommand> commandCache = new Dictionary<QueryCommand, SqliteCommand>();
 
-        public SQLiteQueryProvider(SqliteConnection connection, QueryMapping mapping, QueryPolicy policy)
+		public SQLiteQueryProvider(SqliteConnection connection, QueryMapping mapping, EntityPolicy policy)
             : base(connection, SQLiteLanguage.Default, mapping, policy)
         {
         }
@@ -41,7 +41,7 @@ namespace IQToolkit.Data.SQLite
             return string.Format("Data Source={0};Password={1};FailIfMissing={2};", databaseFile, password, failIfMissing ? bool.TrueString : bool.FalseString);
         }
 
-        public override DbEntityProvider New(DbConnection connection, QueryMapping mapping, QueryPolicy policy)
+		public override DbEntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
         {
             return new SQLiteQueryProvider((SqliteConnection)connection, mapping, policy);
         }

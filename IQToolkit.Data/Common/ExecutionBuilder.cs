@@ -18,7 +18,7 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class ExecutionBuilder : DbExpressionVisitor
     {
-        QueryPolicy policy;
+		EntityPolicy policy;
         QueryLinguist linguist;
         Expression executor;
         Scope scope;
@@ -29,14 +29,14 @@ namespace IQToolkit.Data.Common
         List<Expression> initializers = new List<Expression>();
         Dictionary<string, Expression> variableMap = new Dictionary<string, Expression>();
 
-        private ExecutionBuilder(QueryLinguist linguist, QueryPolicy policy, Expression executor)
+		private ExecutionBuilder(QueryLinguist linguist, EntityPolicy policy, Expression executor)
         {
             this.linguist = linguist;
             this.policy = policy;
             this.executor = executor;
         }
 
-        public static Expression Build(QueryLinguist linguist, QueryPolicy policy, Expression expression, Expression provider)
+		public static Expression Build(QueryLinguist linguist, EntityPolicy policy, Expression expression, Expression provider)
         {
             var executor = Expression.Parameter(typeof(QueryExecutor), "executor");
             var builder = new ExecutionBuilder(linguist, policy, executor);

@@ -23,12 +23,12 @@ namespace IQToolkit.Data
     {
         private readonly QueryLanguage language;
         private readonly QueryMapping mapping;
-        QueryPolicy policy;
+		EntityPolicy policy;
         TextWriter log;
         QueryCache cache;
         private readonly Dictionary<MappingEntity, IEntityTable> tables;
 
-        public EntityProvider(QueryLanguage language, QueryMapping mapping, QueryPolicy policy)
+		public EntityProvider(QueryLanguage language, QueryMapping mapping, EntityPolicy policy)
         {
             if (language == null)
                 throw new InvalidOperationException("Language not specified");
@@ -52,7 +52,7 @@ namespace IQToolkit.Data
             get { return this.language; }
         }
 
-        public QueryPolicy Policy
+		public EntityPolicy Policy
         {
             get { return this.policy; }
 
@@ -60,7 +60,7 @@ namespace IQToolkit.Data
             {
                 if (value == null)
                 {
-                    this.policy = QueryPolicy.Default;
+					this.policy = EntityPolicy.Default;
                 }
                 else
                 {

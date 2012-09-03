@@ -17,45 +17,32 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class QueryTranslator
     {
-        QueryLinguist linguist;
-        QueryMapper mapper;
-        QueryPolice police;
-
-        public QueryTranslator(QueryLanguage language, QueryMapping mapping, QueryPolicy policy)
+	    public QueryTranslator(QueryLanguage language, QueryMapping mapping, EntityPolicy policy)
         {
-            this.linguist = language.CreateLinguist(this);
-            this.mapper = mapping.CreateMapper(this);
-            this.police = policy.CreatePolice(this);
+            this.Linguist = language.CreateLinguist(this);
+            this.Mapper = mapping.CreateMapper(this);
+            this.Police = policy.CreatePolice(this);
         }
 
-        public QueryLinguist Linguist
-        {
-            get { return this.linguist; }
-        }
+	    public QueryLinguist Linguist { get; private set; }
 
-        public QueryMapper Mapper
-        {
-            get { return this.mapper; }
-        }
+	    public QueryMapper Mapper { get; private set; }
 
-        public QueryPolice Police
-        {
-            get { return this.police; }
-        }
+	    public EntityPolicy.QueryPolice Police { get; private set; }
 
-        public virtual Expression Translate(Expression expression)
+	    public virtual Expression Translate(Expression expression)
         {
             // pre-evaluate local sub-trees
-            expression = PartialEvaluator.Eval(expression, this.mapper.Mapping.CanBeEvaluatedLocally);
+            expression = PartialEvaluator.Eval(expression, this.Mapper.Mapping.CanBeEvaluatedLocally);
 
             // apply mapping (binds LINQ operators too)
-            expression = this.mapper.Translate(expression);
+            expression = this.Mapper.Translate(expression);
 
             // any policy specific translations or validations
-            expression = this.police.Translate(expression);
+            expression = this.Police.Translate(expression);
 
             // any language specific translations or validations
-            expression = this.linguist.Translate(expression);
+            expression = this.Linguist.Translate(expression);
 
             return expression;
         }

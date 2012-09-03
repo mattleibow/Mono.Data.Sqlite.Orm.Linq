@@ -18,7 +18,7 @@ namespace IQToolkit.Data.Common
     public class RelationshipIncluder : DbExpressionVisitor
     {
         QueryMapper mapper;
-        QueryPolicy policy;
+        EntityPolicy policy;
         ScopedDictionary<MemberInfo, bool> includeScope = new ScopedDictionary<MemberInfo, bool>(null);
 
         private RelationshipIncluder(QueryMapper mapper)

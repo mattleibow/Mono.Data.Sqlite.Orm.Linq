@@ -17,20 +17,20 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class ClientJoinedProjectionRewriter : DbExpressionVisitor
     {
-        QueryPolicy policy;
+        EntityPolicy policy;
         QueryLanguage language;
         bool isTopLevel = true;
         SelectExpression currentSelect;
         MemberInfo currentMember;
         bool canJoinOnClient = true;
 
-        private ClientJoinedProjectionRewriter(QueryPolicy policy, QueryLanguage language)
+        private ClientJoinedProjectionRewriter(EntityPolicy policy, QueryLanguage language)
         {
             this.policy = policy;
             this.language = language;
         }
 
-        public static Expression Rewrite(QueryPolicy policy, QueryLanguage language, Expression expression)
+        public static Expression Rewrite(EntityPolicy policy, QueryLanguage language, Expression expression)
         {
             return new ClientJoinedProjectionRewriter(policy, language).Visit(expression);
         }

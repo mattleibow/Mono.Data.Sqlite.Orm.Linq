@@ -16,13 +16,18 @@ namespace IQToolkit.Data
     using Common;
     using Mapping;
 
-    public class EntityPolicy : QueryPolicy
+	/// <summary>
+	/// Defines query execution & materialization policies. 
+	/// </summary>
+    public class EntityPolicy
     {
         HashSet<MemberInfo> included = new HashSet<MemberInfo>();
         HashSet<MemberInfo> deferred = new HashSet<MemberInfo>();
         Dictionary<MemberInfo, List<LambdaExpression>> operations = new Dictionary<MemberInfo, List<LambdaExpression>>();
 
-        public void Apply(LambdaExpression fnApply)
+		public static readonly EntityPolicy Default = new EntityPolicy();
+
+		public void Apply(LambdaExpression fnApply)
         {
             if (fnApply == null)
                 throw new ArgumentNullException("fnApply");
@@ -164,52 +169,130 @@ namespace IQToolkit.Data
             }
         }
 
-        public override bool IsIncluded(MemberInfo member)
+		/// <summary>
+		/// Determines if a relationship property is to be included in the results of the query
+		/// </summary>
+		/// <param name="member"></param>
+		/// <returns></returns>
+        public virtual bool IsIncluded(MemberInfo member)
         {
             return this.included.Contains(member);
         }
 
-        public override bool IsDeferLoaded(MemberInfo member)
+		/// <summary>
+		/// Determines if a relationship property is included, but the query for the related data is 
+		/// deferred until the property is first accessed.
+		/// </summary>
+		/// <param name="member"></param>
+		/// <returns></returns>
+        public virtual bool IsDeferLoaded(MemberInfo member)
         {
             return this.deferred.Contains(member);
         }
 
-        public override QueryPolice CreatePolice(QueryTranslator translator)
+        public virtual QueryPolice CreatePolice(QueryTranslator translator)
         {
-            return new Police(this, translator);
+			return new QueryPolice(this, translator);
         }
 
-        class Police : QueryPolice
-        {
-            EntityPolicy policy;
+		public class QueryPolice
+		{
+			EntityPolicy policy;
+			QueryTranslator translator;
 
-            public Police(EntityPolicy policy, QueryTranslator translator)
-                : base(policy, translator)
-            {
-                this.policy = policy;
-            }
+			public QueryPolice(EntityPolicy policy, QueryTranslator translator)
+			{
+				this.policy = policy;
+				this.translator = translator;
+			}
 
-            public override Expression ApplyPolicy(Expression expression, MemberInfo member)
-            {
-                List<LambdaExpression> ops;
-                if (this.policy.operations.TryGetValue(member, out ops))
-                {
-                    var result = expression;
-                    foreach (var fnOp in ops)
-                    {
-                        var pop = PartialEvaluator.Eval(fnOp, this.Translator.Mapper.Mapping.CanBeEvaluatedLocally);
-                        result = this.Translator.Mapper.ApplyMapping(Expression.Invoke(pop, result));
-                    }
-                    var projection = (ProjectionExpression)result;
-                    if (projection.Type != expression.Type)
-                    {
-                        var fnAgg = Aggregator.GetAggregator(expression.Type, projection.Type);
-                        projection = new ProjectionExpression(projection.Select, projection.Projector, fnAgg);
-                    }
-                    return projection;
-                }
-                return expression;
-            }
-        }
+			public EntityPolicy Policy
+			{
+				get { return this.policy; }
+			}
+
+			public QueryTranslator Translator
+			{
+				get { return this.translator; }
+			}
+
+			public virtual Expression ApplyPolicy(Expression expression, MemberInfo member)
+			{
+				List<LambdaExpression> ops;
+				if (this.policy.operations.TryGetValue(member, out ops))
+				{
+					var result = expression;
+					foreach (var fnOp in ops)
+					{
+						var pop = PartialEvaluator.Eval(fnOp, this.Translator.Mapper.Mapping.CanBeEvaluatedLocally);
+						result = this.Translator.Mapper.ApplyMapping(Expression.Invoke(pop, result));
+					}
+					var projection = (ProjectionExpression)result;
+					if (projection.Type != expression.Type)
+					{
+						var fnAgg = Aggregator.GetAggregator(expression.Type, projection.Type);
+						projection = new ProjectionExpression(projection.Select, projection.Projector, fnAgg);
+					}
+					return projection;
+				}
+				return expression;
+			}
+
+			/// <summary>
+			/// Provides policy specific query translations.  This is where choices about inclusion of related objects and how
+			/// heirarchies are materialized affect the definition of the queries.
+			/// </summary>
+			/// <param name="expression"></param>
+			/// <returns></returns>
+			public virtual Expression Translate(Expression expression)
+			{
+				// add included relationships to client projection
+				var rewritten = RelationshipIncluder.Include(this.translator.Mapper, expression);
+				if (rewritten != expression)
+				{
+					expression = rewritten;
+					expression = UnusedColumnRemover.Remove(expression);
+					expression = RedundantColumnRemover.Remove(expression);
+					expression = RedundantSubqueryRemover.Remove(expression);
+					expression = RedundantJoinRemover.Remove(expression);
+				}
+
+				// convert any singleton (1:1 or n:1) projections into server-side joins (cardinality is preserved)
+				rewritten = SingletonProjectionRewriter.Rewrite(this.translator.Linguist.Language, expression);
+				if (rewritten != expression)
+				{
+					expression = rewritten;
+					expression = UnusedColumnRemover.Remove(expression);
+					expression = RedundantColumnRemover.Remove(expression);
+					expression = RedundantSubqueryRemover.Remove(expression);
+					expression = RedundantJoinRemover.Remove(expression);
+				}
+
+				// convert projections into client-side joins
+				rewritten = ClientJoinedProjectionRewriter.Rewrite(this.policy, this.translator.Linguist.Language, expression);
+				if (rewritten != expression)
+				{
+					expression = rewritten;
+					expression = UnusedColumnRemover.Remove(expression);
+					expression = RedundantColumnRemover.Remove(expression);
+					expression = RedundantSubqueryRemover.Remove(expression);
+					expression = RedundantJoinRemover.Remove(expression);
+				}
+
+				return expression;
+			}
+
+			/// <summary>
+			/// Converts a query into an execution plan.  The plan is an function that executes the query and builds the
+			/// resulting objects.
+			/// </summary>
+			/// <param name="projection"></param>
+			/// <param name="provider"></param>
+			/// <returns></returns>
+			public virtual Expression BuildExecutionPlan(Expression query, Expression provider)
+			{
+				return ExecutionBuilder.Build(this.translator.Linguist, this.policy, query, provider);
+			}
+		}
     }
 }

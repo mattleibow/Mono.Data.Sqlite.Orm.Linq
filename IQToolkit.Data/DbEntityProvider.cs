@@ -27,7 +27,7 @@ namespace IQToolkit.Data
         int nConnectedActions = 0;
         bool actionOpenedConnection = false;
 
-        public DbEntityProvider(DbConnection connection, QueryLanguage language, QueryMapping mapping, QueryPolicy policy)
+        public DbEntityProvider(DbConnection connection, QueryLanguage language, QueryMapping mapping, EntityPolicy policy)
             : base(language, mapping, policy)
         {
             if (connection == null)
@@ -57,7 +57,7 @@ namespace IQToolkit.Data
             set { this.isolation = value; }
         }
 
-        public virtual DbEntityProvider New(DbConnection connection, QueryMapping mapping, QueryPolicy policy)
+        public virtual DbEntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
         {
             return (DbEntityProvider)Activator.CreateInstance(this.GetType(), new object[] { connection, mapping, policy });
         }
@@ -76,7 +76,7 @@ namespace IQToolkit.Data
             return n;
         }
 
-        public virtual DbEntityProvider New(QueryPolicy policy)
+		public virtual DbEntityProvider New(EntityPolicy policy)
         {
             var n = New(this.Connection, this.Mapping, policy);
             n.Log = this.Log;
@@ -93,30 +93,30 @@ namespace IQToolkit.Data
 
         public static DbEntityProvider From(string connectionString, string mappingId)
         {
-            return From(connectionString, mappingId, QueryPolicy.Default);
+			return From(connectionString, mappingId, EntityPolicy.Default);
         }
 
-        public static DbEntityProvider From(string connectionString, string mappingId, QueryPolicy policy)
+        public static DbEntityProvider From(string connectionString, string mappingId, EntityPolicy policy)
         {
             return From(null, connectionString, mappingId, policy);
         }
 
-        public static DbEntityProvider From(string connectionString, QueryMapping mapping, QueryPolicy policy)
+        public static DbEntityProvider From(string connectionString, QueryMapping mapping, EntityPolicy policy)
         {
             return From((string)null, connectionString, mapping, policy);
         }
 
         public static DbEntityProvider From(string provider, string connectionString, string mappingId)
         {
-            return From(provider, connectionString, mappingId, QueryPolicy.Default);
+            return From(provider, connectionString, mappingId, EntityPolicy.Default);
         }
 
-        public static DbEntityProvider From(string provider, string connectionString, string mappingId, QueryPolicy policy)
+        public static DbEntityProvider From(string provider, string connectionString, string mappingId, EntityPolicy policy)
         {
             return From(provider, connectionString, GetMapping(mappingId), policy);
         }
 
-        public static DbEntityProvider From(string provider, string connectionString, QueryMapping mapping, QueryPolicy policy)
+        public static DbEntityProvider From(string provider, string connectionString, QueryMapping mapping, EntityPolicy policy)
         {
             if (provider == null)
             {
@@ -151,7 +151,7 @@ namespace IQToolkit.Data
             return From(providerType, connectionString, mapping, policy);
         }
 
-        public static DbEntityProvider From(Type providerType, string connectionString, QueryMapping mapping, QueryPolicy policy)
+        public static DbEntityProvider From(Type providerType, string connectionString, QueryMapping mapping, EntityPolicy policy)
         {
             Type adoConnectionType = GetAdoConnectionType(providerType);
             if (adoConnectionType == null)
