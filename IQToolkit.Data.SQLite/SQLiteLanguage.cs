@@ -12,7 +12,7 @@ namespace IQToolkit.Data.SQLite
     {
 		private DbTypeSystem _typeSystem = new DbTypeSystem();
 
-        public override QueryTypeSystem TypeSystem
+        public override DbTypeSystem TypeSystem
         {
             get { return _typeSystem; }
         }

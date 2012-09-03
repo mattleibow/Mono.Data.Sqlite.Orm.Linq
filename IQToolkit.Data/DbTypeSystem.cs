@@ -15,9 +15,9 @@ namespace IQToolkit.Data
 {
     using Common;
 
-    public class DbTypeSystem : QueryTypeSystem
-    {        
-        public override QueryType Parse(string typeDeclaration)
+    public class DbTypeSystem 
+	{
+		public DbQueryType Parse(string typeDeclaration)
         {
             string[] args = null;
             string typeName = null;
@@ -53,7 +53,7 @@ namespace IQToolkit.Data
             return this.GetQueryType(typeName, args, isNotNull);
         }
 
-        public virtual QueryType GetQueryType(string typeName, string[] args, bool isNotNull)
+		public virtual DbQueryType GetQueryType(string typeName, string[] args, bool isNotNull)
         {
             if (String.Compare(typeName, "rowversion", StringComparison.OrdinalIgnoreCase) == 0)
             {
@@ -150,7 +150,7 @@ namespace IQToolkit.Data
             return NewType(dbType, isNotNull, length, precision, scale);
         }
 
-        public virtual QueryType NewType(SqlDbType type, bool isNotNull, int length, short precision, short scale)
+		public virtual DbQueryType NewType(SqlDbType type, bool isNotNull, int length, short precision, short scale)
         {
             return new DbQueryType(type, isNotNull, length, precision, scale);
         }
@@ -198,7 +198,7 @@ namespace IQToolkit.Data
             get { return Int32.MaxValue; }
         }
 
-        public override QueryType GetColumnType(Type type)
+		public DbQueryType GetColumnType(Type type)
         {
             bool isNotNull = type.IsValueType && !TypeHelper.IsNullableType(type);
             type = TypeHelper.GetNonNullableType(type);
@@ -324,7 +324,7 @@ namespace IQToolkit.Data
             }
         }
 
-        public override string GetVariableDeclaration(QueryType type, bool suppressSize)
+		public string GetVariableDeclaration(DbQueryType type, bool suppressSize)
         {
 			StringBuilder sb = new StringBuilder();
 			DbQueryType sqlType = (DbQueryType)type;
@@ -412,51 +412,30 @@ namespace IQToolkit.Data
         }
     }
 
-    public class DbQueryType : QueryType
+    public class DbQueryType 
     {
-        SqlDbType dbType;
-        bool notNull;
-        int length;
-        short precision;
-        short scale;
-
-        public DbQueryType(SqlDbType dbType, bool notNull, int length, short precision, short scale)
+	    public DbQueryType(SqlDbType dbType, bool notNull, int length, short precision, short scale)
         {
-            this.dbType = dbType;
-            this.notNull = notNull;
-            this.length = length;
-            this.precision = precision;
-            this.scale = scale;
+            this.SqlDbType = dbType;
+            this.NotNull = notNull;
+            this.Length = length;
+            this.Precision = precision;
+            this.Scale = scale;
         }
 
         public DbType DbType
         {
-            get { return DbTypeSystem.GetDbType(this.dbType); }
+            get { return DbTypeSystem.GetDbType(this.SqlDbType); }
         }
 
-        public SqlDbType SqlDbType
-        {
-            get { return this.dbType; }
-        }
+	    public SqlDbType SqlDbType { get; private set; }
 
-        public override int Length
-        {
-            get { return this.length; }
-        }
+	    public int Length { get; private set; }
 
-        public override bool NotNull
-        {
-            get { return this.notNull; }
-        }
+	    public bool NotNull { get; private set; }
 
-        public override short Precision
-        {
-            get { return this.precision; }
-        }
+	    public short Precision { get; private set; }
 
-        public override short Scale
-        {
-            get { return this.scale; }
-        }
+	    public short Scale { get; private set; }
     } 
 }

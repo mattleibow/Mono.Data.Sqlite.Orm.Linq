@@ -10,52 +10,30 @@ namespace IQToolkit.Data.Common
 {
     public class QueryCommand
     {
-        string commandText;
-        ReadOnlyCollection<QueryParameter> parameters;
-
-        public QueryCommand(string commandText, IEnumerable<QueryParameter> parameters)
+	    public QueryCommand(string commandText, IEnumerable<QueryParameter> parameters)
         {
-            this.commandText = commandText;
-            this.parameters = parameters.ToReadOnly();
+            this.CommandText = commandText;
+            this.Parameters = parameters.ToReadOnly();
         }
 
-        public string CommandText
-        {
-            get { return this.commandText; }
-        }
+	    public string CommandText { get; private set; }
 
-        public ReadOnlyCollection<QueryParameter> Parameters
-        {
-            get { return this.parameters; }
-        }
+	    public ReadOnlyCollection<QueryParameter> Parameters { get; private set; }
     }
 
     public class QueryParameter
     {
-        string name;
-        Type type;
-        QueryType queryType;
-
-        public QueryParameter(string name, Type type, QueryType queryType)
+	    public QueryParameter(string name, Type type, DbQueryType queryType)
         {
-            this.name = name;
-            this.type = type;
-            this.queryType = queryType;
+            this.Name = name;
+            this.Type = type;
+            this.QueryType = queryType;
         }
 
-        public string Name
-        {
-            get { return this.name; }
-        }
+	    public string Name { get; private set; }
 
-        public Type Type
-        {
-            get { return this.type; }
-        }
+	    public Type Type { get; private set; }
 
-        public QueryType QueryType
-        {
-            get { return this.queryType; }
-        }
+	    public DbQueryType QueryType { get; private set; }
     }
 }

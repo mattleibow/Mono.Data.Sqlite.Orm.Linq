@@ -88,7 +88,7 @@ namespace IQToolkit.Data.SQLite
 
             protected override void AddParameter(DbCommand command, QueryParameter parameter, object value)
             {
-                QueryType qt = parameter.QueryType;
+				DbQueryType qt = parameter.QueryType;
                 if (qt == null)
                     qt = this.provider.Language.TypeSystem.GetColumnType(parameter.Type);
                 var p = ((SqliteCommand)command).Parameters.Add(parameter.Name, ((DbQueryType)qt).DbType, qt.Length);

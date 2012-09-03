@@ -165,20 +165,16 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class ColumnExpression : DbExpression, IEquatable<ColumnExpression>
     {
-        TableAlias alias;
-        string name;
-        QueryType queryType;
-
-        public ColumnExpression(Type type, QueryType queryType, TableAlias alias, string name)
+	    public ColumnExpression(Type type, DbQueryType queryType, TableAlias alias, string name)
             : base(type)
         {
             if (queryType == null)
                 throw new ArgumentNullException("queryType");
             if (name == null)
                 throw new ArgumentNullException("name");
-            this.alias = alias;
-            this.name = name;
-            this.queryType = queryType;
+            this.Alias = alias;
+            this.Name = name;
+            this.QueryType = queryType;
         }
 
         public override ExpressionType NodeType
@@ -186,29 +182,20 @@ namespace IQToolkit.Data.Common
             get { return (ExpressionType)DbExpressionType.Column; }
         }
 
-        public TableAlias Alias
-        {
-            get { return this.alias; }
-        }
+	    public TableAlias Alias { get; private set; }
 
-        public string Name
-        {
-            get { return this.name; }
-        }
+	    public string Name { get; private set; }
 
-        public QueryType QueryType
-        {
-            get { return this.queryType; }
-        }
+	    public DbQueryType QueryType { get; private set; }
 
-        public override string ToString()
+	    public override string ToString()
         {
-            return this.Alias.ToString() + ".C(" + this.name + ")";
+            return this.Alias.ToString() + ".C(" + this.Name + ")";
         }
 
         public override int GetHashCode()
         {
-            return alias.GetHashCode() + name.GetHashCode();
+            return this.Alias.GetHashCode() + this.Name.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -220,7 +207,7 @@ namespace IQToolkit.Data.Common
         {
             return other != null
                 && ((object)this) == (object)other
-                 || (alias == other.alias && name == other.Name);
+                 || (this.Alias == other.Alias && this.Name == other.Name);
         }
     }
 
@@ -244,11 +231,7 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class ColumnDeclaration
     {
-        string name;
-        Expression expression;
-        QueryType queryType;
-
-        public ColumnDeclaration(string name, Expression expression, QueryType queryType)
+	    public ColumnDeclaration(string name, Expression expression, DbQueryType queryType)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
@@ -256,25 +239,16 @@ namespace IQToolkit.Data.Common
                 throw new ArgumentNullException("expression");
             if (queryType == null)
                 throw new ArgumentNullException("queryType");
-            this.name = name;
-            this.expression = expression;
-            this.queryType = queryType;
+            this.Name = name;
+            this.Expression = expression;
+            this.QueryType = queryType;
         }
 
-        public string Name
-        {
-            get { return this.name; }
-        }
+	    public string Name { get; private set; }
 
-        public Expression Expression
-        {
-            get { return this.expression; }
-        }
+	    public Expression Expression { get; private set; }
 
-        public QueryType QueryType
-        {
-            get { return this.queryType; }
-        }
+	    public DbQueryType QueryType { get; private set; }
     }
 
     /// <summary>
@@ -764,41 +738,28 @@ namespace IQToolkit.Data.Common
 
     public class NamedValueExpression : DbExpression
     {
-        private readonly string name;
-        private readonly QueryType queryType;
-        private readonly Expression value;
-
-        public NamedValueExpression(string name, QueryType queryType, Expression value)
+	    public NamedValueExpression(string name, DbQueryType queryType, Expression value)
             : base(value.Type)
         {
             if (name == null)
                 throw new ArgumentNullException("name");
             if (value == null)
                 throw new ArgumentNullException("value");
-            this.name = name;
-            this.queryType = queryType;
-            this.value = value;
+            this.Name = name;
+            this.QueryType = queryType;
+            this.Value = value;
         }
 
         public override ExpressionType NodeType
         {
             get { return (ExpressionType)DbExpressionType.NamedValue; }
         }
-       
-        public string Name
-        {
-            get { return this.name; }
-        }
 
-        public QueryType QueryType
-        {
-            get { return this.queryType; }
-        }
+	    public string Name { get; private set; }
 
-        public Expression Value
-        {
-            get { return this.value; }
-        }
+	    public DbQueryType QueryType { get; private set; }
+
+	    public Expression Value { get; private set; }
     }
 
     /// <summary>
@@ -1183,44 +1144,29 @@ namespace IQToolkit.Data.Common
 
     public class VariableDeclaration
     {
-        private readonly string name;
-        private readonly QueryType type;
-        private readonly Expression expression;
-
-        public VariableDeclaration(string name, QueryType type, Expression expression)
+	    public VariableDeclaration(string name, DbQueryType type, Expression expression)
         {
-            this.name = name;
-            this.type = type;
-            this.expression = expression;
+            this.Name = name;
+            this.QueryType = type;
+            this.Expression = expression;
         }
 
-        public string Name
-        {
-            get { return this.name; }
-        }
+	    public string Name { get; private set; }
 
-        public QueryType QueryType
-        {
-            get { return this.type; }
-        }
+	    public DbQueryType QueryType { get; private set; }
 
-        public Expression Expression
-        {
-            get { return this.expression; }
-        }
+	    public Expression Expression { get; private set; }
     }
 
     public class VariableExpression : Expression
     {
-        private readonly string name;
-        private readonly Type type;
-        private readonly QueryType queryType;
+	    private readonly Type type;
 
-        public VariableExpression(string name, Type type, QueryType queryType)
+	    public VariableExpression(string name, Type type, DbQueryType queryType)
         {
-            this.name = name;
+            this.Name = name;
             this.type = type;
-            this.queryType = queryType;
+            this.QueryType = queryType;
         }
 
         public override ExpressionType NodeType
@@ -1233,14 +1179,8 @@ namespace IQToolkit.Data.Common
             get { return this.type; }
         }
 
-        public string Name
-        {
-            get { return this.name; }
-        }
+	    public string Name { get; private set; }
 
-        public QueryType QueryType
-        {
-            get { return this.queryType; }
-        }
+	    public DbQueryType QueryType { get; private set; }
     }
 }

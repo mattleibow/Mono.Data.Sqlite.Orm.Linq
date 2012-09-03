@@ -17,7 +17,7 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public abstract class QueryLanguage
     {
-        public abstract QueryTypeSystem TypeSystem { get; }
+        public abstract DbTypeSystem TypeSystem { get; }
         public abstract Expression GetGeneratedIdExpression(MemberInfo member);
 
         public virtual string Quote(string name)

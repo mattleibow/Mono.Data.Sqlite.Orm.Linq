@@ -67,7 +67,6 @@
     <Compile Include="Common\Expressions\DbExpressionWriter.cs" />
     <Compile Include="Common\FieldReader.cs" />
     <Compile Include="Common\Language\QueryLanguage.cs" />
-    <Compile Include="Common\Language\QueryTypeSystem.cs" />
     <Compile Include="Common\Language\SqlFormatter.cs" />
     <Compile Include="DbTypeSystem.cs" />
     <Compile Include="Common\Mapping\AdvancedMapping.cs" />

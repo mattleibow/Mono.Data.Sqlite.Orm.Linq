@@ -389,7 +389,7 @@ namespace IQToolkit.Data.Common
         /// </summary>
         /// <param name="member"></param>
         /// <returns></returns>
-        public virtual QueryType GetColumnType(MappingEntity entity, MemberInfo member)
+		public virtual DbQueryType GetColumnType(MappingEntity entity, MemberInfo member)
         {
             string dbType = this.mapping.GetColumnDbType(entity, member);
             if (dbType != null)
