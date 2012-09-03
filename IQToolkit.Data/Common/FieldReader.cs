@@ -2,6 +2,7 @@
 // This source code is made available under the terms of the Microsoft Public License (MS-PL)
 
 using System;
+using System.Data.Common;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -13,12 +14,18 @@ using System.Text;
 
 namespace IQToolkit.Data.Common
 {
-    public abstract class FieldReader
+    public class FieldReader
     {
         TypeCode[] typeCodes;
+		
+        private readonly QueryExecutor executor;
+        private readonly DbDataReader reader;
 
-        public FieldReader()
+		public FieldReader(QueryExecutor executor, DbDataReader reader)
         {
+            this.executor = executor;
+            this.reader = reader;
+            this.Init();
         }
 
         protected void Init()
@@ -26,21 +33,80 @@ namespace IQToolkit.Data.Common
             this.typeCodes = new TypeCode[this.FieldCount];
         }
 
-        protected abstract int FieldCount { get; }
-        protected abstract Type GetFieldType(int ordinal);
-        protected abstract bool IsDBNull(int ordinal);
-        protected abstract T GetValue<T>(int ordinal);
-        protected abstract Byte GetByte(int ordinal);
-        protected abstract Char GetChar(int ordinal);
-        protected abstract DateTime GetDateTime(int ordinal);
-        protected abstract Decimal GetDecimal(int ordinal);
-        protected abstract Double GetDouble(int ordinal);
-        protected abstract Single GetSingle(int ordinal);
-        protected abstract Guid GetGuid(int ordinal);
-        protected abstract Int16 GetInt16(int ordinal);
-        protected abstract Int32 GetInt32(int ordinal);
-        protected abstract Int64 GetInt64(int ordinal);
-        protected abstract String GetString(int ordinal);
+        protected int FieldCount
+        {
+            get { return this.reader.FieldCount; }
+        }
+
+        protected Type GetFieldType(int ordinal)
+        {
+            return this.reader.GetFieldType(ordinal);
+        }
+
+        protected bool IsDBNull(int ordinal)
+        {
+            return this.reader.IsDBNull(ordinal);
+        }
+
+        protected T GetValue<T>(int ordinal)
+        {
+            return (T)this.executor.Convert(this.reader.GetValue(ordinal), typeof(T));
+        }
+
+        protected Byte GetByte(int ordinal)
+        {
+            return this.reader.GetByte(ordinal);
+        }
+
+        protected Char GetChar(int ordinal)
+        {
+            return this.reader.GetChar(ordinal);
+        }
+
+        protected DateTime GetDateTime(int ordinal)
+        {
+            return this.reader.GetDateTime(ordinal);
+        }
+
+        protected Decimal GetDecimal(int ordinal)
+        {
+            return this.reader.GetDecimal(ordinal);
+        }
+
+        protected Double GetDouble(int ordinal)
+        {
+            return this.reader.GetDouble(ordinal);
+        }
+
+        protected Single GetSingle(int ordinal)
+        {
+            return this.reader.GetFloat(ordinal);
+        }
+
+        protected Guid GetGuid(int ordinal)
+        {
+            return this.reader.GetGuid(ordinal);
+        }
+
+        protected Int16 GetInt16(int ordinal)
+        {
+            return this.reader.GetInt16(ordinal);
+        }
+
+        protected Int32 GetInt32(int ordinal)
+        {
+            return this.reader.GetInt32(ordinal);
+        }
+
+        protected Int64 GetInt64(int ordinal)
+        {
+            return this.reader.GetInt64(ordinal);
+        }
+
+        protected String GetString(int ordinal)
+        {
+            return this.reader.GetString(ordinal);
+        }
 
         public T ReadValue<T>(int ordinal)
         {

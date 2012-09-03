@@ -57,6 +57,9 @@
     <Compile Include="Common\ExecutionBuilder.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\FieldReader.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DbEntityProvider.cs" />
     <Compile Include="Common\Expressions\Aggregator.cs" />
     <Compile Include="Common\Expressions\DbExpressionComparer.cs" />
@@ -65,7 +68,6 @@
     <Compile Include="Common\Expressions\DbExpressions.cs" />
     <Compile Include="Common\Expressions\DbExpressionVisitor.cs" />
     <Compile Include="Common\Expressions\DbExpressionWriter.cs" />
-    <Compile Include="Common\FieldReader.cs" />
     <Compile Include="Common\Language\QueryLanguage.cs" />
     <Compile Include="Common\Language\SqlFormatter.cs" />
     <Compile Include="DbTypeSystem.cs" />
