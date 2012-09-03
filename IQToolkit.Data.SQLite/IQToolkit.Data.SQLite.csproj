@@ -58,7 +58,6 @@
     <Compile Include="SQLiteFormatter.cs" />
     <Compile Include="SQLiteLanguage.cs" />
     <Compile Include="SQLiteQueryProvider.cs" />
-    <Compile Include="SQLiteTypeSystem.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IQToolkit.Data\IQToolkit.Data.csproj">
