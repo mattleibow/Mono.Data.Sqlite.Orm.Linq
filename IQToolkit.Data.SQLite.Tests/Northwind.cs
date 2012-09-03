@@ -205,55 +205,6 @@ namespace Test
         }
     }
 
-    public interface INorthwindSession
-    {
-        void SubmitChanges();
-        ISessionTable<Customer> Customers { get; }
-        ISessionTable<Order> Orders { get; }
-        ISessionTable<OrderDetail> OrderDetails { get; }
-    }
-
-    public class NorthwindSession : INorthwindSession
-    {
-        IEntitySession session;
-
-        public NorthwindSession(EntityProvider provider)
-            : this(new EntitySession(provider))
-        {
-        }
-
-        public NorthwindSession(IEntitySession session)
-        {
-            this.session = session;
-        }
-
-        public IEntitySession Session
-        {
-            get { return this.session; }
-        }
-
-        public void SubmitChanges()
-        {
-            this.session.SubmitChanges();
-        }
-
-        public ISessionTable<Customer> Customers
-        {
-            get { return this.session.GetTable<Customer>("Customers"); }
-        }
-
-        public ISessionTable<Order> Orders
-        {
-            get { return this.session.GetTable<Order>("Orders"); }
-        }
-
-        public ISessionTable<OrderDetail> OrderDetails
-        {
-            get { return this.session.GetTable<OrderDetail>("OrderDetails"); }
-        }
-    }
-
-
     public class CustomerX
     {
         public CustomerX(string customerId, string contactName, string companyName, string phone, string city, string country, List<OrderX> orders)

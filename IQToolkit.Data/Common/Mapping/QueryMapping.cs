@@ -136,8 +136,7 @@ namespace IQToolkit.Data.Common
             MethodCallExpression mc = expression as MethodCallExpression;
             if (mc != null &&
                 (mc.Method.DeclaringType == typeof(Enumerable) ||
-                 mc.Method.DeclaringType == typeof(Queryable) ||
-                 mc.Method.DeclaringType == typeof(Updatable))
+                 mc.Method.DeclaringType == typeof(Queryable))
                  )
             {
                 return false;

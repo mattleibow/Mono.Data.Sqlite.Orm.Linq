@@ -254,43 +254,43 @@ WHERE (STRFTIME('%Y', t0.[OrderDate]) = 1997)</baseline>
   <baseline key="TestDecimalAdd">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE ((t0.[OrderID] + 0,0) = 0,0)</baseline>
+WHERE ((t0.[OrderID] + 0.0) = 0.0)</baseline>
   <baseline key="TestDecimalCompare">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (t0.[OrderID] = 0,0)</baseline>
+WHERE (t0.[OrderID] = 0.0)</baseline>
   <baseline key="TestDecimalDivide">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE ((t0.[OrderID] / 1,0) = 1,0)</baseline>
+WHERE ((t0.[OrderID] / 1.0) = 1.0)</baseline>
   <baseline key="TestDecimalLT">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (t0.[OrderID] &lt; 0,0)</baseline>
+WHERE (t0.[OrderID] &lt; 0.0)</baseline>
   <baseline key="TestDecimalMultiply">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE ((t0.[OrderID] * 1,0) = 1,0)</baseline>
+WHERE ((t0.[OrderID] * 1.0) = 1.0)</baseline>
   <baseline key="TestDecimalNegate">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (-t0.[OrderID] = 1,0)</baseline>
+WHERE (-t0.[OrderID] = 1.0)</baseline>
   <baseline key="TestDecimalRemainder">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE ((t0.[OrderID] % 1,0) = 0,0)</baseline>
+WHERE ((t0.[OrderID] % 1.0) = 0.0)</baseline>
   <baseline key="TestDecimalRoundDefault">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (ROUND(t0.[OrderID], 0) = 0)</baseline>
+WHERE (ROUND(t0.[OrderID], 0) = 0.0)</baseline>
   <baseline key="TestDecimalRoundPlaces">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (ROUND(t0.[OrderID], 2) = 0,00)</baseline>
+WHERE (ROUND(t0.[OrderID], 2) = 0.0)</baseline>
   <baseline key="TestDecimalSubtract">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE ((t0.[OrderID] - 0,0) = 0,0)</baseline>
+WHERE ((t0.[OrderID] - 0.0) = 0.0)</baseline>
   <baseline key="TestDistinct">
 SELECT DISTINCT t0.[City], t0.[CompanyName], t0.[ContactName], t0.[Country], t0.[CustomerID], t0.[Phone]
 FROM [Customers] AS t0</baseline>
@@ -643,11 +643,11 @@ WHERE (POWER((CASE WHEN (t0.[OrderID] &lt; 1000) THEN 1 ELSE 2 END), 3.0) = 0.0)
   <baseline key="TestMathRoundDefault">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (ROUND(t0.[OrderID], 0) = 0)</baseline>
+WHERE (ROUND(t0.[OrderID], 0) = 0.0)</baseline>
   <baseline key="TestMathRoundToPlace">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0
-WHERE (ROUND(t0.[OrderID], 2) = 0)</baseline>
+WHERE (ROUND(t0.[OrderID], 2) = 0.0)</baseline>
   <baseline key="TestMathSin">
 SELECT t0.[CustomerID], t0.[OrderDate], t0.[OrderID]
 FROM [Orders] AS t0

@@ -11,7 +11,9 @@ using System.Text;
 
 namespace IQToolkit.Data.Common
 {
-    /// <summary>
+	using System.Globalization;
+
+	/// <summary>
     /// Formats a query expression into common SQL language syntax
     /// </summary>
     public class SqlFormatter : DbExpressionVisitor
@@ -786,7 +788,8 @@ namespace IQToolkit.Data.Common
                         throw new NotSupportedException(string.Format("The constant for '{0}' is not supported", value));
                     case TypeCode.Single:
                     case TypeCode.Double:
-                        string str = value.ToString();
+                    case TypeCode.Decimal:
+                        string str = string.Format(CultureInfo.InvariantCulture, "{0:0.#}", value);
                         if (!str.Contains('.'))
                         {
                             str += ".0";

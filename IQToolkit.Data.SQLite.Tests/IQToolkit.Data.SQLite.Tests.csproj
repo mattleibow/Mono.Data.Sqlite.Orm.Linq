@@ -56,7 +56,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Northwind.cs" />
-    <Compile Include="NorthwindCUDTests.cs" />
     <Compile Include="NorthwindExecutionTests.cs" />
     <Compile Include="NorthwindTranslationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

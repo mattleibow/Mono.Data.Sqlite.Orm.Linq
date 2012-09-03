@@ -194,54 +194,6 @@ namespace IQToolkit.Data.Common
                         break;
                 }
             }
-            else if (typeof(Updatable).IsAssignableFrom(m.Method.DeclaringType)) 
-            {
-                IEntityTable upd = this.batchUpd != null
-                    ? this.batchUpd
-                    : (IEntityTable)((ConstantExpression)m.Arguments[0]).Value;
-
-                switch (m.Method.Name)
-                {
-                    case "Insert":
-                        return this.BindInsert(
-                            upd,
-                            m.Arguments[1], 
-                            m.Arguments.Count > 2 ? GetLambda(m.Arguments[2]) : null
-                            );
-                    case "Update":
-                        return this.BindUpdate(
-                            upd,
-                            m.Arguments[1], 
-                            m.Arguments.Count > 2 ? GetLambda(m.Arguments[2]) : null, 
-                            m.Arguments.Count > 3 ? GetLambda(m.Arguments[3]) : null
-                            );
-                    case "InsertOrUpdate":
-                        return this.BindInsertOrUpdate(
-                            upd,
-                            m.Arguments[1],
-                            m.Arguments.Count > 2 ? GetLambda(m.Arguments[2]) : null,
-                            m.Arguments.Count > 3 ? GetLambda(m.Arguments[3]) : null
-                            );
-                    case "Delete":
-                        if (m.Arguments.Count == 2 && GetLambda(m.Arguments[1]) != null)
-                        {
-                            return this.BindDelete(upd, null, GetLambda(m.Arguments[1]));
-                        }
-                        return this.BindDelete(
-                            upd,
-                            m.Arguments[1], 
-                            m.Arguments.Count > 2 ? GetLambda(m.Arguments[2]) : null
-                            );
-                    case "Batch":
-                        return this.BindBatch(
-                            upd,
-                            m.Arguments[1],
-                            GetLambda(m.Arguments[2]),
-                            m.Arguments.Count > 3 ? m.Arguments[3] : Expression.Constant(50),
-                            m.Arguments.Count > 4 ? m.Arguments[4] : Expression.Constant(false)
-                            );
-                }
-            }
             if (this.language.IsAggregate(m.Method))
             {
                 return this.BindAggregate(

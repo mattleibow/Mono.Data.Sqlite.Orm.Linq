@@ -197,46 +197,6 @@ namespace IQToolkit.Data
             {
                 return this.GetById(id);
             }
-
-            public int Insert(T instance)
-            {
-                return Updatable.Insert(this, instance);
-            }
-
-            int IEntityTable.Insert(object instance)
-            {
-                return this.Insert((T)instance);
-            }
-
-            public int Delete(T instance)
-            {
-                return Updatable.Delete(this, instance);
-            }
-
-            int IEntityTable.Delete(object instance)
-            {
-                return this.Delete((T)instance);
-            }
-
-            public int Update(T instance)
-            {
-                return Updatable.Update(this, instance);
-            }
-
-            int IEntityTable.Update(object instance)
-            {
-                return this.Update((T)instance);
-            }
-
-            public int InsertOrUpdate(T instance)
-            {
-                return Updatable.InsertOrUpdate(this, instance);
-            }
-
-            int IEntityTable.InsertOrUpdate(object instance)
-            {
-                return this.InsertOrUpdate((T)instance);
-            }
         }
 
         public override string GetQueryText(Expression expression)

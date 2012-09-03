@@ -87,22 +87,6 @@ namespace Test
         }
 
         [TestMethod]
-        public void TestSessionCount()
-        {
-            var nw = new NorthwindSession(_provider);
-            var count = nw.Customers.Count();
-            AssertValue(91, count);
-        }
-
-        [TestMethod]
-        public void TestSessionCountPredicate()
-        {
-            var nw = new NorthwindSession(_provider);
-            var count = nw.Customers.Count(c => c.City == "London");
-            AssertValue(6, count);
-        }
-
-        [TestMethod]
         public void TestWhere()
         {
             var list = db.Customers.Where(c => c.City == "London").ToList();
