@@ -354,7 +354,7 @@ namespace IQToolkit.Data.Common
         public virtual string Format(Expression expression)
         {
             // use common SQL formatter by default
-			return SQLiteFormatter.Format(expression);
+			return SqlFormatter.Format(expression);
         }
 
         /// <summary>
