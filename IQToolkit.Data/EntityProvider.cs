@@ -338,11 +338,6 @@ namespace IQToolkit.Data
             return new ImplicitMapping();
         }
 
-        public static Type GetProviderType(string providerName)
-        {
-			return typeof(SQLiteQueryProvider);
-        }
-
         private static Type FindLoadedType(string typeName)
         {
             foreach (var assem in AppDomain.CurrentDomain.GetAssemblies())
@@ -350,48 +345,6 @@ namespace IQToolkit.Data
                 var type = assem.GetType(typeName, false, true);
                 if (type != null)
                     return type;
-            }
-            return null;
-        }
-
-        private static IEnumerable<Type> FindInstancesIn(Type type, string assemblyName)
-        {
-            Assembly assembly = GetAssemblyForNamespace(assemblyName);
-            if (assembly != null)
-            {
-                foreach (var atype in assembly.GetTypes())
-                {
-                    if (string.Compare(atype.Namespace, assemblyName, true) == 0
-                        && type.IsAssignableFrom(atype))
-                    {
-                        yield return atype;
-                    }
-                }
-            }
-        }
-
-        private static Assembly GetAssemblyForNamespace(string nspace)
-        {
-            foreach (var assem in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (string.Compare(Path.GetFileNameWithoutExtension(assem.Location), nspace, StringComparison.OrdinalIgnoreCase) == 0)
-                {
-                    return assem;
-                }
-            }
-
-            return Load(nspace + ".dll");
-        }
-
-        private static Assembly Load(string name)
-        {
-            // try to load it.
-            try
-            {
-                return Assembly.LoadFrom(name);
-            }
-            catch
-            {
             }
             return null;
         }

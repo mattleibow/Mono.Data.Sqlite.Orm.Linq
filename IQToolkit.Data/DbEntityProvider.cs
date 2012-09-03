@@ -120,45 +120,12 @@ namespace IQToolkit.Data
 
         public static DbEntityProvider From(string provider, string connectionString, QueryMapping mapping, EntityPolicy policy)
         {
-            if (provider == null)
-            {
-                var clower = connectionString.ToLower();
-                // try sniffing connection to figure out provider
-                if (clower.Contains(".mdb") || clower.Contains(".accdb"))
-                {
-                    provider = "IQToolkit.Data.Access";
-                }
-                else if (clower.Contains(".sdf"))
-                {
-                    provider = "IQToolkit.Data.SqlServerCe";
-                }
-                else if (clower.Contains(".sl3") || clower.Contains(".db3"))
-                {
-                    provider = "IQToolkit.Data.SQLite";
-                }
-                else if (clower.Contains(".mdf"))
-                {
-                    provider = "IQToolkit.Data.SqlClient";
-                }
-                else
-                {
-                    throw new InvalidOperationException(string.Format("Query provider not specified and cannot be inferred."));
-                }
-            }
-
-            Type providerType = GetProviderType(provider);
-            if (providerType == null)
-                throw new InvalidOperationException(string.Format("Unable to find query provider '{0}'", provider));
-
-            return From(providerType, connectionString, mapping, policy);
+			return From(typeof(SQLiteQueryProvider), connectionString, mapping, policy);
         }
 
         public static DbEntityProvider From(Type providerType, string connectionString, QueryMapping mapping, EntityPolicy policy)
         {
-            Type adoConnectionType = GetAdoConnectionType(providerType);
-            if (adoConnectionType == null)
-                throw new InvalidOperationException(string.Format("Unable to deduce ADO provider for '{0}'", providerType.Name));
-            DbConnection connection = (DbConnection)Activator.CreateInstance(adoConnectionType);
+			SqliteConnection connection = new SqliteConnection();
 
             // is the connection string just a filename?
             if (!connectionString.Contains('='))
@@ -173,11 +140,6 @@ namespace IQToolkit.Data
             connection.ConnectionString = connectionString;
 
             return (DbEntityProvider)Activator.CreateInstance(providerType, new object[] { connection, mapping, policy });
-        }
-
-        private static Type GetAdoConnectionType(Type providerType)
-        {
-			return typeof(SqliteConnection);
         }
 
         protected bool ActionOpenedConnection
