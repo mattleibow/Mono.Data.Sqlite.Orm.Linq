@@ -108,7 +108,6 @@
     <Compile Include="Common\Mapping\QueryMapping.cs" />
     <Compile Include="Common\QueryCommand.cs" />
     <Compile Include="Common\QueryExecutor.cs" />
-    <Compile Include="Common\QueryPolicy.cs" />
     <Compile Include="Common\QueryTranslator.cs" />
     <Compile Include="Common\Translation\AggregateChecker.cs" />
     <Compile Include="Common\Translation\AggregateRewriter.cs" />
@@ -144,7 +143,6 @@
     <Compile Include="Mapping\ImplicitMapping.cs" />
     <Compile Include="Mapping\XmlMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SQLiteQueryProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Mono.Data.Sqlite.dll" />

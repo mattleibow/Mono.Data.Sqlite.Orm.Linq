@@ -18,10 +18,9 @@ namespace IQToolkit.Data
 	/// </summary>
     public class EntityPolicy
     {
-        HashSet<MemberInfo> included = new HashSet<MemberInfo>();
-        HashSet<MemberInfo> deferred = new HashSet<MemberInfo>();
-        Dictionary<MemberInfo, List<LambdaExpression>> operations = new Dictionary<MemberInfo, List<LambdaExpression>>();
-
+		readonly HashSet<MemberInfo> included = new HashSet<MemberInfo>();
+		readonly HashSet<MemberInfo> deferred = new HashSet<MemberInfo>();
+		readonly Dictionary<MemberInfo, List<LambdaExpression>> operations = new Dictionary<MemberInfo, List<LambdaExpression>>();
 		public static readonly EntityPolicy Default = new EntityPolicy();
 
 		public void Apply(LambdaExpression fnApply)
@@ -194,29 +193,20 @@ namespace IQToolkit.Data
 
 		public class QueryPolice
 		{
-			EntityPolicy policy;
-			QueryTranslator translator;
-
 			public QueryPolice(EntityPolicy policy, QueryTranslator translator)
 			{
-				this.policy = policy;
-				this.translator = translator;
+				this.Policy = policy;
+				this.Translator = translator;
 			}
 
-			public EntityPolicy Policy
-			{
-				get { return this.policy; }
-			}
+			public EntityPolicy Policy { get; private set; }
 
-			public QueryTranslator Translator
-			{
-				get { return this.translator; }
-			}
+			public QueryTranslator Translator { get; private set; }
 
-			public virtual Expression ApplyPolicy(Expression expression, MemberInfo member)
+			public Expression ApplyPolicy(Expression expression, MemberInfo member)
 			{
 				List<LambdaExpression> ops;
-				if (this.policy.operations.TryGetValue(member, out ops))
+				if (this.Policy.operations.TryGetValue(member, out ops))
 				{
 					var result = expression;
 					foreach (var fnOp in ops)
@@ -241,10 +231,10 @@ namespace IQToolkit.Data
 			/// </summary>
 			/// <param name="expression"></param>
 			/// <returns></returns>
-			public virtual Expression Translate(Expression expression)
+			public Expression Translate(Expression expression)
 			{
 				// add included relationships to client projection
-				var rewritten = RelationshipIncluder.Include(this.translator.Mapper, expression);
+				var rewritten = RelationshipIncluder.Include(this.Translator.Mapper, expression);
 				if (rewritten != expression)
 				{
 					expression = rewritten;
@@ -255,7 +245,7 @@ namespace IQToolkit.Data
 				}
 
 				// convert any singleton (1:1 or n:1) projections into server-side joins (cardinality is preserved)
-				rewritten = SingletonProjectionRewriter.Rewrite(this.translator.Linguist.Language, expression);
+				rewritten = SingletonProjectionRewriter.Rewrite(this.Translator.Linguist.Language, expression);
 				if (rewritten != expression)
 				{
 					expression = rewritten;
@@ -266,7 +256,7 @@ namespace IQToolkit.Data
 				}
 
 				// convert projections into client-side joins
-				rewritten = ClientJoinedProjectionRewriter.Rewrite(this.policy, this.translator.Linguist.Language, expression);
+				rewritten = ClientJoinedProjectionRewriter.Rewrite(this.Policy, this.Translator.Linguist.Language, expression);
 				if (rewritten != expression)
 				{
 					expression = rewritten;
@@ -283,12 +273,9 @@ namespace IQToolkit.Data
 			/// Converts a query into an execution plan.  The plan is an function that executes the query and builds the
 			/// resulting objects.
 			/// </summary>
-			/// <param name="projection"></param>
-			/// <param name="provider"></param>
-			/// <returns></returns>
-			public virtual Expression BuildExecutionPlan(Expression query, Expression provider)
+			public Expression BuildExecutionPlan(Expression query, Expression provider)
 			{
-				return ExecutionBuilder.Build(this.translator.Linguist, this.policy, query, provider);
+				return ExecutionBuilder.Build(this.Translator.Linguist, this.Policy, query, provider);
 			}
 		}
     }

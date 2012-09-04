@@ -69,7 +69,7 @@ namespace IQToolkit.Data.Common
                         // remap any references to the outer select to the new alias;
                         SelectExpression newInnerSelect = (SelectExpression)ColumnMapper.Map(proj.Select, newOuterSelect.Alias, save.Alias);
                         // add outer-join test
-                        ProjectionExpression newInnerProjection = this.language.AddOuterJoinTest(new ProjectionExpression(newInnerSelect, proj.Projector));
+                        ProjectionExpression newInnerProjection = QueryLanguage.AddOuterJoinTest(new ProjectionExpression(newInnerSelect, proj.Projector));
                         newInnerSelect = newInnerProjection.Select;
                         Expression newProjector = newInnerProjection.Projector;
 

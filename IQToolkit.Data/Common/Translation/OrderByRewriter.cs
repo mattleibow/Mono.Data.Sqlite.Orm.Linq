@@ -262,7 +262,7 @@ namespace IQToolkit.Data.Common
                         }
                         string colName = column != null ? column.Name : "c" + iOrdinal;
                         colName = newColumns.GetAvailableColumnName(colName);
-                        var colType = this.language.TypeSystem.GetColumnType(expr.Type);
+                        var colType = DbTypeSystem.GetColumnType(expr.Type);
                         newColumns.Add(new ColumnDeclaration(colName, ordering.Expression, colType));
                         expr = new ColumnExpression(expr.Type, colType, alias, colName);
                     }

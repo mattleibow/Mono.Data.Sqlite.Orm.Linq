@@ -394,9 +394,9 @@ namespace IQToolkit.Data.Common
             string dbType = this.mapping.GetColumnDbType(entity, member);
             if (dbType != null)
             {
-                return this.translator.Linguist.Language.TypeSystem.Parse(dbType);
+                return DbTypeSystem.Parse(dbType);
             }
-            return this.translator.Linguist.Language.TypeSystem.GetColumnType(TypeHelper.GetMemberType(member));
+            return DbTypeSystem.GetColumnType(TypeHelper.GetMemberType(member));
         }
 
         public override ProjectionExpression GetQueryExpression(MappingEntity entity)
@@ -794,7 +794,7 @@ namespace IQToolkit.Data.Common
             var alias = new TableAlias();
             foreach (var member in members)
             {
-                Expression genId = this.translator.Linguist.Language.GetGeneratedIdExpression(member);
+                Expression genId = QueryLanguage.GetGeneratedIdExpression(member);
                 var name = member.Name;
                 var colType = this.GetColumnType(entity, member);
                 columns.Add(new ColumnDeclaration(member.Name, genId, colType));
@@ -855,7 +855,7 @@ namespace IQToolkit.Data.Common
                 return new BlockCommand(
                     update,
                     new IFCommand(
-                        this.translator.Linguist.Language.GetRowsAffectedExpression(update).GreaterThan(Expression.Constant(0)),
+                        QueryLanguage.GetRowsAffectedExpression().GreaterThan(Expression.Constant(0)),
                         this.GetUpdateResult(entity, instance, selector),
                         @else
                         )
@@ -866,7 +866,7 @@ namespace IQToolkit.Data.Common
                 return new BlockCommand(
                     update,
                     new IFCommand(
-                        this.translator.Linguist.Language.GetRowsAffectedExpression(update).LessThanOrEqual(Expression.Constant(0)),
+                        QueryLanguage.GetRowsAffectedExpression().LessThanOrEqual(Expression.Constant(0)),
                         @else,
                         null
                         )

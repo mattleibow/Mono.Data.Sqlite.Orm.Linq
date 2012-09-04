@@ -2,24 +2,20 @@
 // This source code is made available under the terms of the Microsoft Public License (MS-PL)
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
 
 namespace IQToolkit.Data.Common
 {
     /// <summary>
     /// Determines if two expressions are equivalent. Supports DbExpression nodes.
     /// </summary>
-    public class DbExpressionComparer : ExpressionComparer
+    public sealed class DbExpressionComparer : ExpressionComparer
     {
         ScopedDictionary<TableAlias, TableAlias> aliasScope;
 
-        protected DbExpressionComparer(
+	    private DbExpressionComparer(
             ScopedDictionary<ParameterExpression, ParameterExpression> parameterScope, 
             Func<object, object, bool> fnCompare,
             ScopedDictionary<TableAlias, TableAlias> aliasScope)
@@ -107,17 +103,17 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual bool CompareTable(TableExpression a, TableExpression b)
+	    private bool CompareTable(TableExpression a, TableExpression b)
         {
             return a.Name == b.Name;
         }
 
-        protected virtual bool CompareColumn(ColumnExpression a, ColumnExpression b)
+	    private bool CompareColumn(ColumnExpression a, ColumnExpression b)
         {
             return this.CompareAlias(a.Alias, b.Alias) && a.Name == b.Name;
         }
 
-        protected virtual bool CompareAlias(TableAlias a, TableAlias b)        
+	    private bool CompareAlias(TableAlias a, TableAlias b)        
         {
             if (this.aliasScope != null)
             {
@@ -128,7 +124,7 @@ namespace IQToolkit.Data.Common
             return a == b;
         }
 
-        protected virtual bool CompareSelect(SelectExpression a, SelectExpression b)
+	    private bool CompareSelect(SelectExpression a, SelectExpression b)
         {
             var save = this.aliasScope;
             try
@@ -164,7 +160,7 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual bool CompareOrderList(ReadOnlyCollection<OrderExpression> a, ReadOnlyCollection<OrderExpression> b)
+	    private bool CompareOrderList(ReadOnlyCollection<OrderExpression> a, ReadOnlyCollection<OrderExpression> b)
         {
             if (a == b)
                 return true;
@@ -181,7 +177,7 @@ namespace IQToolkit.Data.Common
             return true;
         }
 
-        protected virtual bool CompareColumnDeclarations(ReadOnlyCollection<ColumnDeclaration> a, ReadOnlyCollection<ColumnDeclaration> b)
+	    private bool CompareColumnDeclarations(ReadOnlyCollection<ColumnDeclaration> a, ReadOnlyCollection<ColumnDeclaration> b)
         {
             if (a == b)
                 return true;
@@ -197,12 +193,12 @@ namespace IQToolkit.Data.Common
             return true;
         }
 
-        protected virtual bool CompareColumnDeclaration(ColumnDeclaration a, ColumnDeclaration b)
+	    private bool CompareColumnDeclaration(ColumnDeclaration a, ColumnDeclaration b)
         {
             return a.Name == b.Name && this.Compare(a.Expression, b.Expression);
         }
 
-        protected virtual bool CompareJoin(JoinExpression a, JoinExpression b)
+	    private bool CompareJoin(JoinExpression a, JoinExpression b)
         {
             if (a.Join != b.Join || !this.Compare(a.Left, b.Left))
                 return false;
@@ -230,34 +226,34 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual bool CompareAggregate(AggregateExpression a, AggregateExpression b)
+	    private bool CompareAggregate(AggregateExpression a, AggregateExpression b)
         {
             return a.AggregateName == b.AggregateName && this.Compare(a.Argument, b.Argument);
         }
 
-        protected virtual bool CompareIsNull(IsNullExpression a, IsNullExpression b)
+	    private bool CompareIsNull(IsNullExpression a, IsNullExpression b)
         {
             return this.Compare(a.Expression, b.Expression);
         }
 
-        protected virtual bool CompareBetween(BetweenExpression a, BetweenExpression b)
+	    private bool CompareBetween(BetweenExpression a, BetweenExpression b)
         {
             return this.Compare(a.Expression, b.Expression)
                 && this.Compare(a.Lower, b.Lower)
                 && this.Compare(a.Upper, b.Upper);
         }
 
-        protected virtual bool CompareRowNumber(RowNumberExpression a, RowNumberExpression b)
+	    private bool CompareRowNumber(RowNumberExpression a, RowNumberExpression b)
         {
             return this.CompareOrderList(a.OrderBy, b.OrderBy);
         }
 
-        protected virtual bool CompareNamedValue(NamedValueExpression a, NamedValueExpression b)
+	    private bool CompareNamedValue(NamedValueExpression a, NamedValueExpression b)
         {
             return a.Name == b.Name && this.Compare(a.Value, b.Value);
         }
 
-        protected virtual bool CompareSubquery(SubqueryExpression a, SubqueryExpression b)
+	    private bool CompareSubquery(SubqueryExpression a, SubqueryExpression b)
         {
             if (a.NodeType != b.NodeType)
                 return false;
@@ -273,31 +269,31 @@ namespace IQToolkit.Data.Common
             return false;
         }
 
-        protected virtual bool CompareScalar(ScalarExpression a, ScalarExpression b)
+	    private bool CompareScalar(ScalarExpression a, ScalarExpression b)
         {
             return this.Compare(a.Select, b.Select);
         }
 
-        protected virtual bool CompareExists(ExistsExpression a, ExistsExpression b)
+	    private bool CompareExists(ExistsExpression a, ExistsExpression b)
         {
             return this.Compare(a.Select, b.Select);
         }
 
-        protected virtual bool CompareIn(InExpression a, InExpression b)
+	    private bool CompareIn(InExpression a, InExpression b)
         {
             return this.Compare(a.Expression, b.Expression)
                 && this.Compare(a.Select, b.Select)
                 && this.CompareExpressionList(a.Values, b.Values);
         }
 
-        protected virtual bool CompareAggregateSubquery(AggregateSubqueryExpression a, AggregateSubqueryExpression b)
+	    private bool CompareAggregateSubquery(AggregateSubqueryExpression a, AggregateSubqueryExpression b)
         {
             return this.Compare(a.AggregateAsSubquery, b.AggregateAsSubquery)
                 && this.Compare(a.AggregateInGroupSelect, b.AggregateInGroupSelect)
                 && a.GroupByAlias == b.GroupByAlias;
         }
 
-        protected virtual bool CompareProjection(ProjectionExpression a, ProjectionExpression b)
+	    private bool CompareProjection(ProjectionExpression a, ProjectionExpression b)
         {
             if (!this.Compare(a.Select, b.Select))
                 return false;
@@ -318,13 +314,13 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual bool CompareInsert(InsertCommand x, InsertCommand y)
+	    private bool CompareInsert(InsertCommand x, InsertCommand y)
         {
             return this.Compare(x.Table, y.Table)
                 && this.CompareColumnAssignments(x.Assignments, y.Assignments);
         }
 
-        protected virtual bool CompareColumnAssignments(ReadOnlyCollection<ColumnAssignment> x, ReadOnlyCollection<ColumnAssignment> y)
+	    private bool CompareColumnAssignments(ReadOnlyCollection<ColumnAssignment> x, ReadOnlyCollection<ColumnAssignment> y)
         {
             if (x == y)
                 return true;
@@ -338,28 +334,28 @@ namespace IQToolkit.Data.Common
             return true;
         }
 
-        protected virtual bool CompareUpdate(UpdateCommand x, UpdateCommand y)
+	    private bool CompareUpdate(UpdateCommand x, UpdateCommand y)
         {
             return this.Compare(x.Table, y.Table) && this.Compare(x.Where, y.Where) && this.CompareColumnAssignments(x.Assignments, y.Assignments);
         }
 
-        protected virtual bool CompareDelete(DeleteCommand x, DeleteCommand y)
+	    private bool CompareDelete(DeleteCommand x, DeleteCommand y)
         {
             return this.Compare(x.Table, y.Table) && this.Compare(x.Where, y.Where);
         }
 
-        protected virtual bool CompareBatch(BatchExpression x, BatchExpression y)
+	    private bool CompareBatch(BatchExpression x, BatchExpression y)
         {
             return this.Compare(x.Input, y.Input) && this.Compare(x.Operation, y.Operation)
                 && this.Compare(x.BatchSize, y.BatchSize) && this.Compare(x.Stream, y.Stream);
         }
 
-        protected virtual bool CompareIf(IFCommand x, IFCommand y)
+	    private bool CompareIf(IFCommand x, IFCommand y)
         {
             return this.Compare(x.Check, y.Check) && this.Compare(x.IfTrue, y.IfTrue) && this.Compare(x.IfFalse, y.IfFalse);
         }
 
-        protected virtual bool CompareBlock(BlockCommand x, BlockCommand y)
+	    private bool CompareBlock(BlockCommand x, BlockCommand y)
         {
             if (x.Commands.Count != y.Commands.Count)
                 return false;
@@ -371,12 +367,12 @@ namespace IQToolkit.Data.Common
             return true;
         }
 
-        protected virtual bool CompareFunction(FunctionExpression x, FunctionExpression y)
+	    private bool CompareFunction(FunctionExpression x, FunctionExpression y)
         {
             return x.Name == y.Name && this.CompareExpressionList(x.Arguments, y.Arguments);
         }
 
-        protected virtual bool CompareEntity(EntityExpression x, EntityExpression y)
+	    private bool CompareEntity(EntityExpression x, EntityExpression y)
         {
             return x.Entity == y.Entity && this.Compare(x.Expression, y.Expression);
         }

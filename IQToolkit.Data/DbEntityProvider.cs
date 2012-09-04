@@ -22,17 +22,19 @@ namespace IQToolkit.Data
 
 	public class DbEntityProvider : EntityProvider
     {
-        private readonly DbConnection connection;
+		Dictionary<QueryCommand, SqliteCommand> commandCache = new Dictionary<QueryCommand, SqliteCommand>();
+		
+		private readonly DbConnection connection;
         DbTransaction transaction;
         IsolationLevel isolation = IsolationLevel.ReadCommitted;
 
         int nConnectedActions = 0;
-        bool actionOpenedConnection = false;
 
-        public DbEntityProvider(DbConnection connection, QueryLanguage language, QueryMapping mapping, EntityPolicy policy)
-            : base(language, mapping, policy)
+		public DbEntityProvider(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
+			: base(QueryLanguage.Default, mapping, policy)
         {
-            if (connection == null)
+	        ActionOpenedConnection = false;
+	        if (connection == null)
                 throw new InvalidOperationException("Connection not specified");
             this.connection = connection;
         }
@@ -61,7 +63,7 @@ namespace IQToolkit.Data
 
         public virtual DbEntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
         {
-            return (DbEntityProvider)Activator.CreateInstance(this.GetType(), new object[] { connection, mapping, policy });
+			return new DbEntityProvider(connection, mapping, policy); 
         }
 
         public virtual DbEntityProvider New(DbConnection connection)
@@ -120,7 +122,7 @@ namespace IQToolkit.Data
 
         public static DbEntityProvider From(string provider, string connectionString, QueryMapping mapping, EntityPolicy policy)
         {
-			return From(typeof(SQLiteQueryProvider), connectionString, mapping, policy);
+			return From(typeof(DbEntityProvider), connectionString, mapping, policy);
         }
 
         public static DbEntityProvider From(Type providerType, string connectionString, QueryMapping mapping, EntityPolicy policy)
@@ -128,31 +130,24 @@ namespace IQToolkit.Data
 			SqliteConnection connection = new SqliteConnection();
 
             // is the connection string just a filename?
-            if (!connectionString.Contains('='))
-            {
-                MethodInfo gcs = providerType.GetMethod("GetConnectionString", BindingFlags.Static | BindingFlags.Public, null, new Type[] { typeof(string) }, null);
-                if (gcs != null)
-                {
-                    connectionString = (string)gcs.Invoke(null, new object[] { connectionString });
-                }
-            }
-
-            connection.ConnectionString = connectionString;
+			if (!connectionString.Contains('='))
+			{
+				connectionString = "Data Source=" + connectionString;
+			}
+			
+	        connection.ConnectionString = connectionString;
 
             return (DbEntityProvider)Activator.CreateInstance(providerType, new object[] { connection, mapping, policy });
         }
 
-        protected bool ActionOpenedConnection
-        {
-            get { return this.actionOpenedConnection; }
-        }
+		protected bool ActionOpenedConnection { get; private set; }
 
-        protected void StartUsingConnection()
+		protected void StartUsingConnection()
         {
             if (this.connection.State == ConnectionState.Closed)
             {
                 this.connection.Open();
-                this.actionOpenedConnection = true;
+                this.ActionOpenedConnection = true;
             }
             this.nConnectedActions++;
         }
@@ -161,10 +156,10 @@ namespace IQToolkit.Data
         {
             System.Diagnostics.Debug.Assert(this.nConnectedActions > 0);
             this.nConnectedActions--;
-            if (this.nConnectedActions == 0 && this.actionOpenedConnection)
+            if (this.nConnectedActions == 0 && this.ActionOpenedConnection)
             {
                 this.connection.Close();
-                this.actionOpenedConnection = false;
+                this.ActionOpenedConnection = false;
             }
         }
 
@@ -231,27 +226,23 @@ namespace IQToolkit.Data
             }
         }
 
-        protected override QueryExecutor CreateExecutor()
+		public override QueryExecutor CreateExecutor()
         {
             return new Executor(this);
         }
 
         public class Executor : QueryExecutor
         {
-            DbEntityProvider provider;
-            int rowsAffected;
+			public Executor(DbEntityProvider provider)
+			{
+				this.Provider = provider;
+			}
 
-            public Executor(DbEntityProvider provider)
-            {
-                this.provider = provider;
-            }
+	        int rowsAffected;
 
-            public DbEntityProvider Provider
-            {
-                get { return this.provider; }
-            }
+	        public DbEntityProvider Provider { get; private set; }
 
-            public override int RowsAffected
+	        public override int RowsAffected
             {
                 get { return this.rowsAffected; }
             }
@@ -263,17 +254,17 @@ namespace IQToolkit.Data
 
             protected bool ActionOpenedConnection
             {
-                get { return this.provider.actionOpenedConnection; }
+                get { return this.Provider.ActionOpenedConnection; }
             }
 
             protected void StartUsingConnection()
             {
-                this.provider.StartUsingConnection();
+                this.Provider.StartUsingConnection();
             }
 
             protected void StopUsingConnection()
             {
-                this.provider.StopUsingConnection();
+                this.Provider.StopUsingConnection();
             }
 
             public override object Convert(object value, Type type)
@@ -316,7 +307,7 @@ namespace IQToolkit.Data
                     DbCommand cmd = this.GetCommand(command, paramValues);
                     DbDataReader reader = this.ExecuteReader(cmd);
                     var result = Project(reader, fnProjector, entity, true);
-                    if (this.provider.ActionOpenedConnection)
+                    if (this.Provider.ActionOpenedConnection)
                     {
                         result = result.ToList();
                     }
@@ -501,19 +492,29 @@ namespace IQToolkit.Data
             /// <summary>
             /// Get an ADO command object initialized with the command-text and parameters
             /// </summary>
-            /// <param name="commandText"></param>
-            /// <param name="paramNames"></param>
-            /// <param name="paramValues"></param>
-            /// <returns></returns>
             protected virtual DbCommand GetCommand(QueryCommand query, object[] paramValues)
             {
-                // create command object (and fill in parameters)
-                DbCommand cmd = this.provider.Connection.CreateCommand();
-                cmd.CommandText = query.CommandText;
-                if (this.provider.Transaction != null)
-                    cmd.Transaction = this.provider.Transaction;
-                this.SetParameterValues(query, cmd, paramValues);
-                return cmd;
+				SqliteCommand cmd;
+				if (!this.Provider.commandCache.TryGetValue(query, out cmd))
+				{
+					cmd = (SqliteCommand)this.Provider.Connection.CreateCommand();
+					cmd.CommandText = query.CommandText;
+					this.SetParameterValues(query, cmd, paramValues);
+					cmd.Prepare();
+					this.Provider.commandCache.Add(query, cmd);
+					if (this.Provider.Transaction != null)
+					{
+						cmd = (SqliteCommand)cmd.Clone();
+						cmd.Transaction = (SqliteTransaction)this.Provider.Transaction;
+					}
+				}
+				else
+				{
+					cmd = (SqliteCommand)cmd.Clone();
+					cmd.Transaction = (SqliteTransaction)this.Provider.Transaction;
+					this.SetParameterValues(query, cmd, paramValues);
+				}
+				return cmd;
             }
 
             protected virtual void SetParameterValues(QueryCommand query, DbCommand command, object[] paramValues)
@@ -541,10 +542,19 @@ namespace IQToolkit.Data
 
             protected virtual void AddParameter(DbCommand command, QueryParameter parameter, object value)
             {
-                DbParameter p = command.CreateParameter();
-                p.ParameterName = parameter.Name;
-                p.Value = value ?? DBNull.Value;
-                command.Parameters.Add(p);
+				DbQueryType qt = parameter.QueryType;
+				if (qt == null)
+					qt = DbTypeSystem.GetColumnType(parameter.Type);
+				var p = ((SqliteCommand)command).Parameters.Add(parameter.Name, ((DbQueryType)qt).DbType, qt.Length);
+				if (qt.Length != 0)
+				{
+					p.Size = qt.Length;
+				}
+				else if (qt.Scale != 0)
+				{
+					p.Size = qt.Scale;
+				}
+				p.Value = value ?? DBNull.Value;
             }
 
             protected virtual void GetParameterValues(DbCommand command, object[] paramValues)
@@ -566,9 +576,9 @@ namespace IQToolkit.Data
 
             protected virtual void LogMessage(string message)
             {
-                if (this.provider.Log != null)
+                if (this.Provider.Log != null)
                 {
-                    this.provider.Log.WriteLine(message);
+                    this.Provider.Log.WriteLine(message);
                 }
             }
 
@@ -579,20 +589,20 @@ namespace IQToolkit.Data
             /// <param name="paramValues"></param>
             protected virtual void LogCommand(QueryCommand command, object[] paramValues)
             {
-                if (this.provider.Log != null)
+                if (this.Provider.Log != null)
                 {
-                    this.provider.Log.WriteLine(command.CommandText);
+                    this.Provider.Log.WriteLine(command.CommandText);
                     if (paramValues != null)
                     {
                         this.LogParameters(command, paramValues);
                     }
-                    this.provider.Log.WriteLine();
+                    this.Provider.Log.WriteLine();
                 }
             }
 
             protected virtual void LogParameters(QueryCommand command, object[] paramValues)
             {
-                if (this.provider.Log != null && paramValues != null)
+                if (this.Provider.Log != null && paramValues != null)
                 {
                     for (int i = 0, n = command.Parameters.Count; i < n; i++)
                     {
@@ -601,11 +611,11 @@ namespace IQToolkit.Data
 
                         if (v == null || v == DBNull.Value)
                         {
-                            this.provider.Log.WriteLine("-- {0} = NULL", p.Name);
+                            this.Provider.Log.WriteLine("-- {0} = NULL", p.Name);
                         }
                         else
                         {
-                            this.provider.Log.WriteLine("-- {0} = [{1}]", p.Name, v);
+                            this.Provider.Log.WriteLine("-- {0} = [{1}]", p.Name, v);
                         }
                     }
                 }

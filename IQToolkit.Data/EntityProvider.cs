@@ -19,7 +19,7 @@ namespace IQToolkit.Data
     /// <summary>
     /// A LINQ IQueryable query provider that executes database queries over a DbConnection
     /// </summary>
-    public abstract class EntityProvider : QueryProvider, IEntityProvider, ICreateExecutor
+    public abstract class EntityProvider : QueryProvider, IEntityProvider
     {
         private readonly QueryLanguage language;
         private readonly QueryMapping mapping;
@@ -140,12 +140,7 @@ namespace IQToolkit.Data
             }
         }
 
-        protected abstract QueryExecutor CreateExecutor();
-
-        QueryExecutor ICreateExecutor.CreateExecutor()
-        {
-            return this.CreateExecutor();
-        }
+		public abstract QueryExecutor CreateExecutor();
 
         public class EntityTable<T> : Query<T>, IEntityTable<T>, IHaveMappingEntity
         {

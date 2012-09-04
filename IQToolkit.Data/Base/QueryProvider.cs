@@ -15,7 +15,7 @@ namespace IQToolkit
     /// <summary>
     /// A basic abstract LINQ query provider
     /// </summary>
-    public abstract class QueryProvider : IQueryProvider, IQueryText, IAsyncQueryProvider
+    public abstract class QueryProvider : IQueryProvider, IAsyncQueryProvider
     {
         protected QueryProvider()
         {

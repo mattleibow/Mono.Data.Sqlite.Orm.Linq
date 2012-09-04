@@ -39,7 +39,7 @@ namespace IQToolkit.Data.Common
                 foreach (AggregateSubqueryExpression ae in lookup[select.Alias])
                 {
                     string name = "agg" + aggColumns.Count;
-                    var colType = this.language.TypeSystem.GetColumnType(ae.Type);
+                    var colType = DbTypeSystem.GetColumnType(ae.Type);
                     ColumnDeclaration cd = new ColumnDeclaration(name, ae.AggregateInGroupSelect, colType);
                     this.map.Add(ae, new ColumnExpression(ae.Type, colType, ae.GroupByAlias, name));
                     aggColumns.Add(cd);

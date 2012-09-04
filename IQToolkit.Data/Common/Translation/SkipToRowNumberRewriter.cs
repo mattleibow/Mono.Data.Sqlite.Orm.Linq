@@ -41,7 +41,7 @@ namespace IQToolkit.Data.Common
                     newSelect = newSelect.AddRedundantSelect(this.language, new TableAlias());
                 }
 
-                var colType = this.language.TypeSystem.GetColumnType(typeof(int));
+                var colType = DbTypeSystem.GetColumnType(typeof(int));
                 newSelect = newSelect.AddColumn(new ColumnDeclaration(columnName, new RowNumberExpression(select.OrderBy), colType));
 
                 // add layer for WHERE clause that references new rownum column

@@ -67,7 +67,7 @@ namespace IQToolkit.Data.Common
                 SelectExpression source =(SelectExpression)ColumnMapper.Map(proj.Select, newAlias, this.currentSelect.Alias);
 
                 // add outer-join test
-                ProjectionExpression pex = this.language.AddOuterJoinTest(new ProjectionExpression(source, proj.Projector));
+                ProjectionExpression pex = QueryLanguage.AddOuterJoinTest(new ProjectionExpression(source, proj.Projector));
 
                 var pc = ColumnProjector.ProjectColumns(this.language, pex.Projector, this.currentSelect.Columns, this.currentSelect.Alias, newAlias, proj.Select.Alias);
 

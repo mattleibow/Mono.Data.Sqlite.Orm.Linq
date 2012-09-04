@@ -76,7 +76,7 @@ namespace IQToolkit.Data.Common
                 if (this.currentFrom != null && this.mapping.IsSingletonRelationship(ex.Entity, m.Member))
                 {
                     // convert singleton associations directly to OUTER APPLY
-                    projection = this.language.AddOuterJoinTest(projection);
+                    projection = QueryLanguage.AddOuterJoinTest(projection);
                     Expression newFrom = new JoinExpression(JoinType.OuterApply, this.currentFrom, projection.Select, null);
                     this.currentFrom = newFrom;
                     return projection.Projector;

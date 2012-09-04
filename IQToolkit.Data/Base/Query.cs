@@ -12,34 +12,20 @@ using System.Text;
 namespace IQToolkit
 {
     /// <summary>
-    /// Optional interface for IQueryProvider to implement Query<T>'s QueryText property.
-    /// </summary>
-    public interface IQueryText
-    {
-        string GetQueryText(Expression expression);
-    }
-
-    /// <summary>
     /// A default implementation of IQueryable for use with QueryProvider
     /// </summary>
     public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
     {
-        IQueryProvider provider;
-        Expression expression;
+		QueryProvider provider;
 
-        public Query(IQueryProvider provider)
-            : this(provider, null)
-        {
-        }
-
-        public Query(IQueryProvider provider, Type staticType)
+	    public Query(QueryProvider provider, Type staticType)
         {
             if (provider == null)
             {
                 throw new ArgumentNullException("Provider");
             }
             this.provider = provider;
-            this.expression = staticType != null ? Expression.Constant(this, staticType) : Expression.Constant(this);
+            this.Expression = staticType != null ? Expression.Constant(this, staticType) : Expression.Constant(this);
         }
 
         public Query(QueryProvider provider, Expression expression)
@@ -57,15 +43,12 @@ namespace IQToolkit
                 throw new ArgumentOutOfRangeException("expression");
             }
             this.provider = provider;
-            this.expression = expression;
+            this.Expression = expression;
         }
 
-        public Expression Expression
-        {
-            get { return this.expression; }
-        }
+	    public Expression Expression { get; private set; }
 
-        public Type ElementType
+	    public Type ElementType
         {
             get { return typeof(T); }
         }
@@ -77,37 +60,32 @@ namespace IQToolkit
 
         public IEnumerator<T> GetEnumerator()
         {
-            return ((IEnumerable<T>)this.provider.Execute(this.expression)).GetEnumerator();
+            return ((IEnumerable<T>)this.provider.Execute(this.Expression)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)this.provider.Execute(this.expression)).GetEnumerator();
+            return ((IEnumerable)this.provider.Execute(this.Expression)).GetEnumerator();
         }
 
         public override string ToString()
         {
-            if (this.expression.NodeType == ExpressionType.Constant &&
-                ((ConstantExpression)this.expression).Value == this)
+	        if (this.Expression.NodeType == ExpressionType.Constant &&
+                ((ConstantExpression)this.Expression).Value == this)
             {
                 return "Query(" + typeof(T) + ")";
             }
-            else
-            {
-                return this.expression.ToString();
-            }
+
+	        return this.Expression.ToString();
         }
 
-        public string QueryText
+	    public string QueryText
         {
-            get 
+            get
             {
-                IQueryText iqt = this.provider as IQueryText;
-                if (iqt != null)
-                {
-                    return iqt.GetQueryText(this.expression);
-                }
-                return "";
+	            return this.provider != null
+					? this.provider.GetQueryText(this.Expression) 
+					: string.Empty;
             }
         }
     }

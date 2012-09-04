@@ -12,11 +12,6 @@ using System.Text;
 
 namespace IQToolkit.Data.Common
 {
-    public interface ICreateExecutor
-    {
-        QueryExecutor CreateExecutor();
-    }
-
     public abstract class QueryExecutor
     {
         // called from compiled execution plan

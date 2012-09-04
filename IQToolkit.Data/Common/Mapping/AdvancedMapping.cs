@@ -414,7 +414,7 @@ namespace IQToolkit.Data.Common
             {
                 commands.Add(
                     new IFCommand(
-                        this.Translator.Linguist.Language.GetRowsAffectedExpression(commands[commands.Count-1]).GreaterThan(Expression.Constant(0)),
+                        QueryLanguage.GetRowsAffectedExpression().GreaterThan(Expression.Constant(0)),
                         this.GetUpdateResult(entity, instance, selector),
                         @else
                         )
@@ -424,7 +424,7 @@ namespace IQToolkit.Data.Common
             {
                 commands.Add(
                     new IFCommand(
-                        this.Translator.Linguist.Language.GetRowsAffectedExpression(commands[commands.Count-1]).LessThanOrEqual(Expression.Constant(0)),
+                        QueryLanguage.GetRowsAffectedExpression().LessThanOrEqual(Expression.Constant(0)),
                         @else,
                         null
                         )

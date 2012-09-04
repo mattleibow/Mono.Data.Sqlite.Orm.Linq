@@ -179,13 +179,13 @@ namespace IQToolkit.Data.Common
 
 		protected virtual void WriteColumnName(string columnName)
 		{
-			string name = (this.Language != null) ? this.Language.Quote(columnName) : columnName;
+			string name = (this.Language != null) ? QueryLanguage.Quote(columnName) : columnName;
 			this.Write(name);
 		}
 
 		protected virtual void WriteTableName(string tableName)
 		{
-			string name = (this.Language != null) ? this.Language.Quote(tableName) : tableName;
+			string name = (this.Language != null) ? QueryLanguage.Quote(tableName) : tableName;
 			this.Write(name);
 		}
 

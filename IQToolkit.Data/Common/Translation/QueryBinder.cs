@@ -194,7 +194,7 @@ namespace IQToolkit.Data.Common
                         break;
                 }
             }
-            if (this.language.IsAggregate(m.Method))
+            if (QueryLanguage.IsAggregate(m.Method))
             {
                 return this.BindAggregate(
                     m.Arguments[0], 
@@ -349,7 +349,7 @@ namespace IQToolkit.Data.Common
             JoinType joinType = isTable ? JoinType.CrossJoin : defaultIfEmpty ? JoinType.OuterApply : JoinType.CrossApply;
             if (joinType == JoinType.OuterApply)
             {
-                collectionProjection = this.language.AddOuterJoinTest(collectionProjection);
+                collectionProjection = QueryLanguage.AddOuterJoinTest(collectionProjection);
             }
             JoinExpression join = new JoinExpression(joinType, projection.Select, collectionProjection.Select, null);
 
@@ -610,7 +610,7 @@ namespace IQToolkit.Data.Common
 
         private Expression BindAggregate(Expression source, string aggName, Type returnType, LambdaExpression argument, bool isRoot)
         {
-            bool hasPredicateArg = this.language.AggregateArgumentIsPredicate(aggName);
+            bool hasPredicateArg = QueryLanguage.AggregateArgumentIsPredicate(aggName);
             bool isDistinct = false;
             bool argumentWasPredicate = false;
             bool useAlternateArg = false;
@@ -621,7 +621,7 @@ namespace IQToolkit.Data.Common
             {
                 if (mcs.Method.Name == "Distinct" && mcs.Arguments.Count == 1 &&
                     (mcs.Method.DeclaringType == typeof(Queryable) || mcs.Method.DeclaringType == typeof(Enumerable))
-                    && this.language.AllowDistinctInAggregates)
+                    && QueryLanguage.AllowDistinctInAggregates)
                 {
                     source = mcs.Arguments[0];
                     isDistinct = true;
@@ -652,14 +652,14 @@ namespace IQToolkit.Data.Common
             var alias = this.GetNextAlias();
             var pc = this.ProjectColumns(projection.Projector, alias, projection.Select.Alias);
             Expression aggExpr = new AggregateExpression(returnType, aggName, argExpr, isDistinct);
-            var colType = this.language.TypeSystem.GetColumnType(returnType);
+            var colType = DbTypeSystem.GetColumnType(returnType);
             SelectExpression select = new SelectExpression(alias, new ColumnDeclaration[] { new ColumnDeclaration("", aggExpr, colType) }, projection.Select, null);
 
             if (isRoot)
             {
                 ParameterExpression p = Expression.Parameter(typeof(IEnumerable<>).MakeGenericType(aggExpr.Type), "p");
                 LambdaExpression gator = Expression.Lambda(Expression.Call(typeof(Enumerable), "Single", new Type[] { returnType }, p), p);
-                return new ProjectionExpression(select, new ColumnExpression(returnType, this.language.TypeSystem.GetColumnType(returnType), alias, ""), gator);
+                return new ProjectionExpression(select, new ColumnExpression(returnType, DbTypeSystem.GetColumnType(returnType), alias, ""), gator);
             }
 
             ScalarExpression subquery = new ScalarExpression(returnType, select);
@@ -827,14 +827,14 @@ namespace IQToolkit.Data.Common
                 }
                 if (isRoot)
                 {
-                    if (this.language.AllowSubqueryInSelectWithoutFrom)
+                    if (QueryLanguage.AllowSubqueryInSelectWithoutFrom)
                     {
                         return GetSingletonSequence(result, "SingleOrDefault");
                     }
                     else
                     {
                         // use count aggregate instead of exists
-                        var colType = this.language.TypeSystem.GetColumnType(typeof(int));
+                        var colType = DbTypeSystem.GetColumnType(typeof(int));
                         var newSelect = projection.Select.SetColumns(
                             new[] { new ColumnDeclaration("value", new AggregateExpression(typeof(int), "Count", null, false), colType) }
                             );
@@ -867,7 +867,7 @@ namespace IQToolkit.Data.Common
                 match = this.Visit(match);
                 return new InExpression(match, values);
             }
-            else if (isRoot && !this.language.AllowSubqueryInSelectWithoutFrom)
+            else if (isRoot && !QueryLanguage.AllowSubqueryInSelectWithoutFrom)
             {
                 var p = Expression.Parameter(TypeHelper.GetElementType(source.Type), "x");
                 var predicate = Expression.Lambda(p.Equal(match), p);
@@ -897,7 +897,7 @@ namespace IQToolkit.Data.Common
                 gator = Expression.Lambda(Expression.Call(typeof(Enumerable), aggregator, new Type[] { expr.Type }, p), p);
             }
             var alias = this.GetNextAlias();
-            var colType = this.language.TypeSystem.GetColumnType(expr.Type);
+            var colType = DbTypeSystem.GetColumnType(expr.Type);
             SelectExpression select = new SelectExpression(alias, new[] { new ColumnDeclaration("value", expr, colType) }, null, null);
             return new ProjectionExpression(select, new ColumnExpression(expr.Type, colType, alias, "value"), gator);
         }
@@ -1005,7 +1005,7 @@ namespace IQToolkit.Data.Common
                 return this.VisitSequence(this.mapper.GetQueryExpression(this.mapper.Mapping.GetEntity(m.Member)));
             }
             Expression source = this.Visit(m.Expression);
-            if (this.language.IsAggregate(m.Member) && IsRemoteQuery(source))
+            if (QueryLanguage.IsAggregate(m.Member) && IsRemoteQuery(source))
             {
                 return this.BindAggregate(m.Expression, m.Member.Name, TypeHelper.GetMemberType(m.Member), null, m == this.root);
             }

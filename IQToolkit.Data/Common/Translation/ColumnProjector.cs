@@ -121,7 +121,7 @@ namespace IQToolkit.Data.Common
                 else
                 {
                     string columnName = this.GetNextColumnName();
-                    var colType = this.language.TypeSystem.GetColumnType(expression.Type);
+                    var colType = DbTypeSystem.GetColumnType(expression.Type);
                     this.columns.Add(new ColumnDeclaration(columnName, expression, colType));
                     return new ColumnExpression(expression.Type, colType, this.newAlias, columnName);
                 }
@@ -183,7 +183,7 @@ namespace IQToolkit.Data.Common
                 {
                     bool saveIsBlocked = this.isBlocked;
                     this.isBlocked = false;
-                    if (this.language.MustBeColumn(expression))
+                    if (QueryLanguage.MustBeColumn(expression))
                     {
                         this.candidates.Add(expression);
                         // don't merge saveIsBlocked
@@ -193,7 +193,7 @@ namespace IQToolkit.Data.Common
                         base.Visit(expression);
                         if (!this.isBlocked)
                         {
-                            if (this.language.CanBeColumn(expression))
+                            if (QueryLanguage.CanBeColumn(expression))
                             {
                                 this.candidates.Add(expression);
                             }

@@ -41,7 +41,7 @@ namespace IQToolkit.Data.Common
             var executor = Expression.Parameter(typeof(QueryExecutor), "executor");
             var builder = new ExecutionBuilder(linguist, policy, executor);
             builder.variables.Add(executor);
-            builder.initializers.Add(Expression.Call(Expression.Convert(provider, typeof(ICreateExecutor)), "CreateExecutor", null, null));
+			builder.initializers.Add(Expression.Call(Expression.Convert(provider, typeof(EntityProvider)), "CreateExecutor", null, null));
             var result = builder.Build(expression);
             return result;
         }
@@ -230,7 +230,7 @@ namespace IQToolkit.Data.Common
                 projection = (ProjectionExpression)OuterParameterizer.Parameterize(this.scope.Alias, projection);
             }
 
-            string commandText = this.linguist.Format(projection.Select);
+            string commandText = QueryLinguist.Format(projection.Select);
             ReadOnlyCollection<NamedValueExpression> namedValues = NamedValueGatherer.Gather(projection.Select);
             QueryCommand command = new QueryCommand(commandText, namedValues.Select(v => new QueryParameter(v.Name, v.Type, v.QueryType)));
             Expression[] values = namedValues.Select(v => Expression.Convert(this.Visit(v.Value), typeof(object))).ToArray();
@@ -272,7 +272,7 @@ namespace IQToolkit.Data.Common
 
         protected override Expression VisitBatch(BatchExpression batch)
         {
-            if (this.linguist.Language.AllowsMultipleCommands || !IsMultipleCommands(batch.Operation.Body as CommandExpression))
+            if (QueryLanguage.AllowsMultipleCommands || !IsMultipleCommands(batch.Operation.Body as CommandExpression))
             {
                 return this.BuildExecuteBatch(batch);
             }
@@ -290,7 +290,7 @@ namespace IQToolkit.Data.Common
             // parameterize query
             Expression operation = this.Parameterize(batch.Operation.Body);
 
-            string commandText = this.linguist.Format(operation);
+            string commandText = QueryLinguist.Format(operation);
             var namedValues = NamedValueGatherer.Gather(operation);
             QueryCommand command = new QueryCommand(commandText, namedValues.Select(v => new QueryParameter(v.Name, v.Type, v.QueryType)));
             Expression[] values = namedValues.Select(v => Expression.Convert(this.Visit(v.Value), typeof(object))).ToArray();
@@ -338,7 +338,7 @@ namespace IQToolkit.Data.Common
 
         protected override Expression VisitCommand(CommandExpression command)
         {
-            if (this.linguist.Language.AllowsMultipleCommands || !IsMultipleCommands(command))
+            if (QueryLanguage.AllowsMultipleCommands || !IsMultipleCommands(command))
             {
                 return this.BuildExecuteCommand(command);
             }
@@ -400,7 +400,7 @@ namespace IQToolkit.Data.Common
 
         protected override Expression VisitFunction(FunctionExpression func)
         {
-            if (this.linguist.Language.IsRowsAffectedExpressions(func))
+            if (QueryLanguage.IsRowsAffectedExpressions(func))
             {
                 return Expression.Property(this.executor, "RowsAffected");
             }
@@ -410,7 +410,7 @@ namespace IQToolkit.Data.Common
         protected override Expression VisitExists(ExistsExpression exists)
         {
             // how did we get here? Translate exists into count query
-            var colType = this.linguist.Language.TypeSystem.GetColumnType(typeof(int));
+            var colType = DbTypeSystem.GetColumnType(typeof(int));
             var newSelect = exists.Select.SetColumns(
                 new[] { new ColumnDeclaration("value", new AggregateExpression(typeof(int), "Count", null, false), colType) }
                 );
@@ -472,7 +472,7 @@ namespace IQToolkit.Data.Common
             // parameterize query
             var expression = this.Parameterize(command);
 
-            string commandText = this.linguist.Format(expression);
+            string commandText = QueryLinguist.Format(expression);
             ReadOnlyCollection<NamedValueExpression> namedValues = NamedValueGatherer.Gather(expression);
             QueryCommand qc = new QueryCommand(commandText, namedValues.Select(v => new QueryParameter(v.Name, v.Type, v.QueryType)));
             Expression[] values = namedValues.Select(v => Expression.Convert(this.Visit(v.Value), typeof(object))).ToArray();

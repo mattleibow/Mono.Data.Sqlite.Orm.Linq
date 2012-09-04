@@ -64,7 +64,7 @@ namespace IQToolkit.Data.Common
         public static ProjectionExpression AddOuterJoinTest(this ProjectionExpression proj, QueryLanguage language, Expression expression)
         {
             string colName = proj.Select.Columns.GetAvailableColumnName("Test");
-            var colType = language.TypeSystem.GetColumnType(expression.Type);
+            var colType = DbTypeSystem.GetColumnType(expression.Type);
             SelectExpression newSource = proj.Select.AddColumn(new ColumnDeclaration(colName, expression, colType));
             Expression newProjector =
                 new OuterJoinedExpression(
@@ -173,7 +173,7 @@ namespace IQToolkit.Data.Common
         {
             var newColumns = 
                 from d in sel.Columns
-                let qt = (d.Expression is ColumnExpression) ? ((ColumnExpression)d.Expression).QueryType : language.TypeSystem.GetColumnType(d.Expression.Type)
+                let qt = (d.Expression is ColumnExpression) ? ((ColumnExpression)d.Expression).QueryType : DbTypeSystem.GetColumnType(d.Expression.Type)
                 select new ColumnDeclaration(d.Name, new ColumnExpression(d.Expression.Type, qt, newAlias, d.Name), qt);
 
             var newFrom = new SelectExpression(newAlias, sel.Columns, sel.From, sel.Where, sel.OrderBy, sel.GroupBy, sel.IsDistinct, sel.Skip, sel.Take, sel.IsReverse);

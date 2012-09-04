@@ -17,63 +17,44 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class QueryLanguage
 	{
-		private DbTypeSystem _typeSystem = new DbTypeSystem();
-
-		public DbTypeSystem TypeSystem
-		{
-			get { return _typeSystem; }
-		}
-
-		public Expression GetGeneratedIdExpression(MemberInfo member)
+		public static Expression GetGeneratedIdExpression(MemberInfo member)
 		{
 			return new FunctionExpression(TypeHelper.GetMemberType(member), "last_insert_rowid()", null);
 		}
 
 		private static readonly char[] splitChars = new char[] { '.' };
 
-        public virtual string Quote(string name)
+        public static string Quote(string name)
         {
-			if (name.StartsWith("[") && name.EndsWith("]"))
+	        if (name.StartsWith("[") && name.EndsWith("]"))
 			{
 				return name;
 			}
-			else if (name.IndexOf('.') > 0)
-			{
-				return "[" + string.Join("].[", name.Split(splitChars, StringSplitOptions.RemoveEmptyEntries)) + "]";
-			}
-			else
-			{
-				return "[" + name + "]";
-			}
+	        if (name.IndexOf('.') > 0)
+	        {
+		        return "[" + string.Join("].[", name.Split(splitChars, StringSplitOptions.RemoveEmptyEntries)) + "]";
+	        }
+	        return "[" + name + "]";
         }
 
-        public virtual bool AllowsMultipleCommands
-        {
-            get { return false; }
-        }
+	    public const bool AllowsMultipleCommands = false;
 
-        public virtual bool AllowSubqueryInSelectWithoutFrom
-        {
-            get { return false; }
-        }
+	    public const bool AllowSubqueryInSelectWithoutFrom = false;
 
-        public virtual bool AllowDistinctInAggregates
-        {
-            get { return false; }
-        }
+	    public const bool AllowDistinctInAggregates = false;
 
-        public virtual Expression GetRowsAffectedExpression(Expression command)
+	    public static Expression GetRowsAffectedExpression()
         {
 			return new FunctionExpression(typeof(int), "changes()", null);
         }
 
-        public virtual bool IsRowsAffectedExpressions(Expression expression)
+        public static bool IsRowsAffectedExpressions(Expression expression)
 		{
 			FunctionExpression fex = expression as FunctionExpression;
 			return fex != null && fex.Name == "changes()";
         }
 
-        public virtual Expression GetOuterJoinTest(SelectExpression select)
+        public static Expression GetOuterJoinTest(SelectExpression select)
         {
             // if the column is used in the join condition (equality test)
             // if it is null in the database then the join test won't match (null != null) so the row won't appear
@@ -102,9 +83,9 @@ namespace IQToolkit.Data.Common
             return Expression.Constant(1, typeof(int?));
         }
 
-        public virtual ProjectionExpression AddOuterJoinTest(ProjectionExpression proj)
+        public static ProjectionExpression AddOuterJoinTest(ProjectionExpression proj)
         {
-            var test = this.GetOuterJoinTest(proj.Select);
+            var test = GetOuterJoinTest(proj.Select);
             var select = proj.Select;
             ColumnExpression testCol = null;
             // look to see if test expression exists in columns already
@@ -112,7 +93,7 @@ namespace IQToolkit.Data.Common
             {
                 if (test.Equals(col.Expression))
                 {
-                    var colType = this.TypeSystem.GetColumnType(test.Type);
+                    var colType = DbTypeSystem.GetColumnType(test.Type);
                     testCol = new ColumnExpression(test.Type, colType, select.Alias, col.Name);
                     break;
                 }
@@ -123,7 +104,7 @@ namespace IQToolkit.Data.Common
                 testCol = test as ColumnExpression;
                 string colName = (testCol != null) ? testCol.Name : "Test";
                 colName = proj.Select.Columns.GetAvailableColumnName(colName);
-                var colType = this.TypeSystem.GetColumnType(test.Type);
+                var colType = DbTypeSystem.GetColumnType(test.Type);
                 select = select.AddColumn(new ColumnDeclaration(colName, test, colType));
                 testCol = new ColumnExpression(test.Type, colType, select.Alias, colName);
             }
@@ -178,7 +159,7 @@ namespace IQToolkit.Data.Common
                 }
             }
 
-            private ColumnExpression GetColumn(Expression exp)
+            private static ColumnExpression GetColumn(Expression exp)
             {
                 while (exp.NodeType == ExpressionType.Convert || exp.NodeType == ExpressionType.ConvertChecked)
                     exp = ((UnaryExpression)exp).Operand;
@@ -194,31 +175,7 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        /// <summary>
-        /// Determines whether the CLR type corresponds to a scalar data type in the query language
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        public virtual bool IsScalar(Type type)
-        {
-            type = TypeHelper.GetNonNullableType(type);
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Empty:
-                case TypeCode.DBNull:
-                    return false;
-                case TypeCode.Object:
-                    return
-                        type == typeof(DateTimeOffset) ||
-                        type == typeof(TimeSpan) ||
-                        type == typeof(Guid) ||
-                        type == typeof(byte[]);
-                default:
-                    return true;
-            }
-        }
-
-        public virtual bool IsAggregate(MemberInfo member)
+	    public static bool IsAggregate(MemberInfo member)
         {
             var method = member as MethodInfo;
             if (method != null)
@@ -248,7 +205,7 @@ namespace IQToolkit.Data.Common
             return false;
         }
 
-        public virtual bool AggregateArgumentIsPredicate(string aggregateName)
+        public static bool AggregateArgumentIsPredicate(string aggregateName)
         {
             return aggregateName == "Count" || aggregateName == "LongCount";
         }
@@ -258,13 +215,13 @@ namespace IQToolkit.Data.Common
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public virtual bool CanBeColumn(Expression expression)
+        public static bool CanBeColumn(Expression expression)
         {
             // by default, push all work in projection to client
-            return this.MustBeColumn(expression);
+            return MustBeColumn(expression);
         }
 
-        public virtual bool MustBeColumn(Expression expression)
+        public static bool MustBeColumn(Expression expression)
         {
             switch (expression.NodeType)
             {
@@ -279,7 +236,7 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        public virtual QueryLinguist CreateLinguist(QueryTranslator translator)
+        public QueryLinguist CreateLinguist(QueryTranslator translator)
         {
             return new QueryLinguist(this, translator);
         }
@@ -289,32 +246,23 @@ namespace IQToolkit.Data.Common
 
     public class QueryLinguist
     {
-        QueryLanguage language;
-        QueryTranslator translator;
-
-        public QueryLinguist(QueryLanguage language, QueryTranslator translator)
+	    public QueryLinguist(QueryLanguage language, QueryTranslator translator)
         {
-            this.language = language;
-            this.translator = translator;
+            this.Language = language;
+            this.Translator = translator;
         }
 
-        public QueryLanguage Language 
-        {
-            get { return this.language; }
-        }
+	    public QueryLanguage Language { get; private set; }
 
-        public QueryTranslator Translator
-        {
-            get { return this.translator; }
-        }
+	    public QueryTranslator Translator { get; private set; }
 
-        /// <summary>
+	    /// <summary>
         /// Provides language specific query translation.  Use this to apply language specific rewrites or
         /// to make assertions/validations about the query.
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public virtual Expression Translate(Expression expression)
+        public Expression Translate(Expression expression)
 		{   
 			// fix up any order-by's
 			expression = OrderByRewriter.Rewrite(this.Language, expression);
@@ -325,7 +273,7 @@ namespace IQToolkit.Data.Common
             expression = RedundantSubqueryRemover.Remove(expression);
 
             // convert cross-apply and outer-apply joins into inner & left-outer-joins if possible
-            var rewritten = CrossApplyRewriter.Rewrite(this.language, expression);
+            var rewritten = CrossApplyRewriter.Rewrite(this.Language, expression);
 
             // convert cross joins into inner joins
             rewritten = CrossJoinRewriter.Rewrite(rewritten);
@@ -351,7 +299,7 @@ namespace IQToolkit.Data.Common
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public virtual string Format(Expression expression)
+        public static string Format(Expression expression)
         {
             // use common SQL formatter by default
 			return SqlFormatter.Format(expression);
@@ -362,9 +310,9 @@ namespace IQToolkit.Data.Common
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public virtual Expression Parameterize(Expression expression)
+        public Expression Parameterize(Expression expression)
         {
-            return Parameterizer.Parameterize(this.language, expression);
+            return Parameterizer.Parameterize(this.Language, expression);
         }
     }
 }

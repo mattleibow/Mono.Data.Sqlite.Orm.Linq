@@ -2,22 +2,13 @@
 // This source code is made available under the terms of the Microsoft Public License (MS-PL)
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
 
 namespace IQToolkit.Data
 {
-    using Common;
-
-    public class DbTypeSystem 
+    public static class DbTypeSystem 
 	{
-		public DbQueryType Parse(string typeDeclaration)
+		public static DbQueryType Parse(string typeDeclaration)
         {
             string[] args = null;
             string typeName = null;
@@ -50,10 +41,10 @@ namespace IQToolkit.Data
 
             bool isNotNull = (remainder != null) ? remainder.ToUpper().Contains("NOT NULL") : false;
 
-            return this.GetQueryType(typeName, args, isNotNull);
+            return GetQueryType(typeName, args, isNotNull);
         }
 
-		public virtual DbQueryType GetQueryType(string typeName, string[] args, bool isNotNull)
+		public static DbQueryType GetQueryType(string typeName, string[] args, bool isNotNull)
         {
             if (String.Compare(typeName, "rowversion", StringComparison.OrdinalIgnoreCase) == 0)
             {
@@ -70,7 +61,7 @@ namespace IQToolkit.Data
                 typeName = "Variant";
             }
 
-            SqlDbType dbType = this.GetSqlType(typeName);
+            SqlDbType dbType = GetSqlType(typeName);
 
             int length = 0;
             short precision = 0;
@@ -150,12 +141,12 @@ namespace IQToolkit.Data
             return NewType(dbType, isNotNull, length, precision, scale);
         }
 
-		public virtual DbQueryType NewType(SqlDbType type, bool isNotNull, int length, short precision, short scale)
+		public static DbQueryType NewType(SqlDbType type, bool isNotNull, int length, short precision, short scale)
         {
             return new DbQueryType(type, isNotNull, length, precision, scale);
         }
 
-        public virtual SqlDbType GetSqlType(string typeName)
+        public static SqlDbType GetSqlType(string typeName)
 		{
 			if (string.Compare(typeName, "TEXT", true) == 0 ||
 				   string.Compare(typeName, "CHAR", true) == 0 ||
@@ -188,17 +179,11 @@ namespace IQToolkit.Data
 			}
         }
 
-        public virtual int StringDefaultSize
-        {
-            get { return Int32.MaxValue; }
-        }
+	    public const int StringDefaultSize = Int32.MaxValue;
 
-        public virtual int BinaryDefaultSize
-        {
-            get { return Int32.MaxValue; }
-        }
+	    public const int BinaryDefaultSize = Int32.MaxValue;
 
-		public DbQueryType GetColumnType(Type type)
+	    public static DbQueryType GetColumnType(Type type)
         {
             bool isNotNull = type.IsValueType && !TypeHelper.IsNullableType(type);
             type = TypeHelper.GetNonNullableType(type);
@@ -222,7 +207,7 @@ namespace IQToolkit.Data
                 case TypeCode.Double:
                     return NewType(SqlDbType.Float, isNotNull, 0, 0, 0);
                 case TypeCode.String:
-                    return NewType(SqlDbType.NVarChar, isNotNull, this.StringDefaultSize, 0, 0);
+                    return NewType(SqlDbType.NVarChar, isNotNull, StringDefaultSize, 0, 0);
                 case TypeCode.Char:
                     return NewType(SqlDbType.NChar, isNotNull, 1, 0, 0);
                 case TypeCode.DateTime:
@@ -231,7 +216,7 @@ namespace IQToolkit.Data
                     return NewType(SqlDbType.Decimal, isNotNull, 0, 29, 4);
                 default:
                     if (type == typeof(byte[]))
-                        return NewType(SqlDbType.VarBinary, isNotNull, this.BinaryDefaultSize, 0, 0);
+                        return NewType(SqlDbType.VarBinary, isNotNull, BinaryDefaultSize, 0, 0);
                     else if (type == typeof(Guid))
                         return NewType(SqlDbType.UniqueIdentifier, isNotNull, 0, 0, 0);
                     else if (type == typeof(DateTimeOffset))
@@ -306,111 +291,7 @@ namespace IQToolkit.Data
                     throw new InvalidOperationException(string.Format("Unhandled sql type: {0}", dbType));
             }
         }
-
-        public static bool IsVariableLength(SqlDbType dbType)
-        {
-            switch (dbType)
-            {
-                case SqlDbType.Image:
-                case SqlDbType.NText:
-                case SqlDbType.NVarChar:
-                case SqlDbType.Text:
-                case SqlDbType.VarBinary:
-                case SqlDbType.VarChar:
-                case SqlDbType.Xml:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
-		public string GetVariableDeclaration(DbQueryType type, bool suppressSize)
-        {
-			StringBuilder sb = new StringBuilder();
-			DbQueryType sqlType = (DbQueryType)type;
-			SqlDbType sqlDbType = sqlType.SqlDbType;
-
-			switch (sqlDbType)
-			{
-				case SqlDbType.BigInt:
-				case SqlDbType.SmallInt:
-				case SqlDbType.Int:
-				case SqlDbType.TinyInt:
-					sb.Append("INTEGER");
-					break;
-				case SqlDbType.Bit:
-					sb.Append("BOOLEAN");
-					break;
-				case SqlDbType.SmallDateTime:
-					sb.Append("DATETIME");
-					break;
-				case SqlDbType.Char:
-				case SqlDbType.NChar:
-					sb.Append("CHAR");
-					if (type.Length > 0 && !suppressSize)
-					{
-						sb.Append("(");
-						sb.Append(type.Length);
-						sb.Append(")");
-					}
-					break;
-				case SqlDbType.Variant:
-				case SqlDbType.Binary:
-				case SqlDbType.Image:
-				case SqlDbType.UniqueIdentifier: //There is a setting to make it string, look at later
-					sb.Append("BLOB");
-					if (type.Length > 0 && !suppressSize)
-					{
-						sb.Append("(");
-						sb.Append(type.Length);
-						sb.Append(")");
-					}
-					break;
-				case SqlDbType.Xml:
-				case SqlDbType.NText:
-				case SqlDbType.NVarChar:
-				case SqlDbType.Text:
-				case SqlDbType.VarBinary:
-				case SqlDbType.VarChar:
-					sb.Append("TEXT");
-					if (type.Length > 0 && !suppressSize)
-					{
-						sb.Append("(");
-						sb.Append(type.Length);
-						sb.Append(")");
-					}
-					break;
-				case SqlDbType.Decimal:
-				case SqlDbType.Money:
-				case SqlDbType.SmallMoney:
-					sb.Append("NUMERIC");
-					if (type.Precision != 0)
-					{
-						sb.Append("(");
-						sb.Append(type.Precision);
-						sb.Append(")");
-					}
-					break;
-				case SqlDbType.Float:
-				case SqlDbType.Real:
-					sb.Append("FLOAT");
-					if (type.Precision != 0)
-					{
-						sb.Append("(");
-						sb.Append(type.Precision);
-						sb.Append(")");
-					}
-					break;
-				case SqlDbType.Date:
-				case SqlDbType.DateTime:
-				case SqlDbType.Timestamp:
-				default:
-					sb.Append(sqlDbType);
-					break;
-			}
-			return sb.ToString();
-        }
-    }
+	}
 
     public class DbQueryType 
     {

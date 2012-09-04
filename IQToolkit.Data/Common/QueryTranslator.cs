@@ -30,7 +30,7 @@ namespace IQToolkit.Data.Common
 
 	    public EntityPolicy.QueryPolice Police { get; private set; }
 
-	    public virtual Expression Translate(Expression expression)
+	    public Expression Translate(Expression expression)
         {
             // pre-evaluate local sub-trees
             expression = PartialEvaluator.Eval(expression, this.Mapper.Mapping.CanBeEvaluatedLocally);
