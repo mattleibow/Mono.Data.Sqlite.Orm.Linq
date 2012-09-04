@@ -216,11 +216,7 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class TableAlias
     {
-        public TableAlias()
-        {
-        }
-
-        public override string ToString()
+	    public override string ToString()
         {
             return "A:" + this.GetHashCode();
         }

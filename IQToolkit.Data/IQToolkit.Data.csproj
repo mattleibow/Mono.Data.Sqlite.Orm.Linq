@@ -107,7 +107,6 @@
     <Compile Include="Common\Mapping\BasicMapping.cs" />
     <Compile Include="Common\Mapping\QueryMapping.cs" />
     <Compile Include="Common\QueryCommand.cs" />
-    <Compile Include="Common\QueryExecutor.cs" />
     <Compile Include="Common\QueryTranslator.cs" />
     <Compile Include="Common\Translation\AggregateChecker.cs" />
     <Compile Include="Common\Translation\AggregateRewriter.cs" />

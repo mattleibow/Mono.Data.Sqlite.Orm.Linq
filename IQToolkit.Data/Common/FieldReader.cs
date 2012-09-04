@@ -17,11 +17,11 @@ namespace IQToolkit.Data.Common
     public class FieldReader
     {
         TypeCode[] typeCodes;
-		
-        private readonly QueryExecutor executor;
+
+		private readonly DbEntityProvider.Executor executor;
         private readonly DbDataReader reader;
 
-		public FieldReader(QueryExecutor executor, DbDataReader reader)
+		public FieldReader(DbEntityProvider.Executor executor, DbDataReader reader)
         {
             this.executor = executor;
             this.reader = reader;

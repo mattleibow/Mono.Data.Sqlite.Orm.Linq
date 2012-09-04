@@ -21,11 +21,9 @@ namespace IQToolkit.Data
     /// </summary>
     public abstract class EntityProvider : QueryProvider, IEntityProvider
     {
-        private readonly QueryLanguage language;
-        private readonly QueryMapping mapping;
-		EntityPolicy policy;
-        TextWriter log;
-        QueryCache cache;
+	    EntityPolicy policy;
+
+	    QueryCache cache;
         private readonly Dictionary<MappingEntity, IEntityTable> tables;
 
 		public EntityProvider(QueryLanguage language, QueryMapping mapping, EntityPolicy policy)
@@ -36,52 +34,25 @@ namespace IQToolkit.Data
                 throw new InvalidOperationException("Mapping not specified");
             if (policy == null)
                 throw new InvalidOperationException("Policy not specified");
-            this.language = language;
-            this.mapping = mapping;
+            this.Language = language;
+            this.Mapping = mapping;
             this.policy = policy;
             this.tables = new Dictionary<MappingEntity, IEntityTable>();
         }
 
-        public QueryMapping Mapping
-        {
-            get { return this.mapping; }
-        }
+	    public QueryMapping Mapping { get; private set; }
 
-        public QueryLanguage Language
-        {
-            get { return this.language; }
-        }
+	    public QueryLanguage Language { get; private set; }
 
-		public EntityPolicy Policy
+	    public EntityPolicy Policy
         {
             get { return this.policy; }
-
-            set
-            {
-                if (value == null)
-                {
-					this.policy = EntityPolicy.Default;
-                }
-                else
-                {
-                    this.policy = value;
-                }
-            }
+            set { this.policy = value ?? EntityPolicy.Default; }
         }
 
-        public TextWriter Log
-        {
-            get { return this.log; }
-            set { this.log = value; }
-        }
+	    public TextWriter Log { get; set; }
 
-        public QueryCache Cache
-        {
-            get { return this.cache; }
-            set { this.cache = value; }
-        }
-
-        public IEntityTable GetTable(MappingEntity entity)
+	    public IEntityTable GetTable(MappingEntity entity)
         {
             IEntityTable table;
             if (!this.tables.TryGetValue(entity, out table))
@@ -140,7 +111,7 @@ namespace IQToolkit.Data
             }
         }
 
-		public abstract QueryExecutor CreateExecutor();
+		public abstract DbEntityProvider.Executor CreateExecutor();
 
         public class EntityTable<T> : Query<T>, IEntityTable<T>, IHaveMappingEntity
         {
@@ -231,7 +202,7 @@ namespace IQToolkit.Data
 
         protected virtual QueryTranslator CreateTranslator()
         {
-            return new QueryTranslator(this.language, this.mapping, this.policy);
+            return new QueryTranslator(this.Language, this.Mapping, this.policy);
         }
 
         public abstract void DoTransacted(Action action);

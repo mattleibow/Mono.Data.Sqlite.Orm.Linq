@@ -39,12 +39,12 @@ namespace IQToolkit.Data
             this.connection = connection;
         }
 
-        public virtual DbConnection Connection
+        public DbConnection Connection
         {
             get { return this.connection; }
         }
 
-        public virtual DbTransaction Transaction
+        public DbTransaction Transaction
         {
             get { return this.transaction; }
             set
@@ -61,26 +61,26 @@ namespace IQToolkit.Data
             set { this.isolation = value; }
         }
 
-        public virtual DbEntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
+        public DbEntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
         {
 			return new DbEntityProvider(connection, mapping, policy); 
         }
 
-        public virtual DbEntityProvider New(DbConnection connection)
+        public DbEntityProvider New(DbConnection connection)
         {
             var n = New(connection, this.Mapping, this.Policy);
             n.Log = this.Log;
             return n;
         }
 
-        public virtual DbEntityProvider New(QueryMapping mapping)
+        public DbEntityProvider New(QueryMapping mapping)
         {
             var n = New(this.Connection, mapping, this.Policy);
             n.Log = this.Log;
             return n;
         }
 
-		public virtual DbEntityProvider New(EntityPolicy policy)
+		public DbEntityProvider New(EntityPolicy policy)
         {
             var n = New(this.Connection, this.Mapping, policy);
             n.Log = this.Log;
@@ -140,9 +140,9 @@ namespace IQToolkit.Data
             return (DbEntityProvider)Activator.CreateInstance(providerType, new object[] { connection, mapping, policy });
         }
 
-		protected bool ActionOpenedConnection { get; private set; }
+		private bool ActionOpenedConnection { get; set; }
 
-		protected void StartUsingConnection()
+		private void StartUsingConnection()
         {
             if (this.connection.State == ConnectionState.Closed)
             {
@@ -152,7 +152,7 @@ namespace IQToolkit.Data
             this.nConnectedActions++;
         }
 
-        protected void StopUsingConnection()
+		private void StopUsingConnection()
         {
             System.Diagnostics.Debug.Assert(this.nConnectedActions > 0);
             this.nConnectedActions--;
@@ -226,12 +226,12 @@ namespace IQToolkit.Data
             }
         }
 
-		public override QueryExecutor CreateExecutor()
+		public override Executor CreateExecutor()
         {
             return new Executor(this);
         }
 
-        public class Executor : QueryExecutor
+        public class Executor
         {
 			public Executor(DbEntityProvider provider)
 			{
@@ -242,7 +242,7 @@ namespace IQToolkit.Data
 
 	        public DbEntityProvider Provider { get; private set; }
 
-	        public override int RowsAffected
+	        public virtual int RowsAffected
             {
                 get { return this.rowsAffected; }
             }
@@ -267,7 +267,7 @@ namespace IQToolkit.Data
                 this.Provider.StopUsingConnection();
             }
 
-            public override object Convert(object value, Type type)
+            public virtual object Convert(object value, Type type)
             {
                 if (value == null)
                 {
@@ -298,7 +298,7 @@ namespace IQToolkit.Data
                 return value;
             }
 
-            public override IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
+            public virtual IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
             {
                 this.LogCommand(command, paramValues);
                 this.StartUsingConnection();
@@ -359,7 +359,7 @@ namespace IQToolkit.Data
                 }
             }
 
-            public override int ExecuteCommand(QueryCommand query, object[] paramValues)
+            public virtual int ExecuteCommand(QueryCommand query, object[] paramValues)
             {
                 this.LogCommand(query, paramValues);
                 this.StartUsingConnection();
@@ -375,7 +375,7 @@ namespace IQToolkit.Data
                 }
             }
 
-            public override IEnumerable<int> ExecuteBatch(QueryCommand query, IEnumerable<object[]> paramSets, int batchSize, bool stream)
+            public virtual IEnumerable<int> ExecuteBatch(QueryCommand query, IEnumerable<object[]> paramSets, int batchSize, bool stream)
             {
                 this.StartUsingConnection();
                 try
@@ -410,7 +410,7 @@ namespace IQToolkit.Data
                 }
             }
 
-            public override IEnumerable<T> ExecuteBatch<T>(QueryCommand query, IEnumerable<object[]> paramSets, Func<FieldReader, T> fnProjector, MappingEntity entity, int batchSize, bool stream)
+            public virtual IEnumerable<T> ExecuteBatch<T>(QueryCommand query, IEnumerable<object[]> paramSets, Func<FieldReader, T> fnProjector, MappingEntity entity, int batchSize, bool stream)
             {
                 this.StartUsingConnection();
                 try
@@ -462,7 +462,7 @@ namespace IQToolkit.Data
                 }
             }
 
-            public override IEnumerable<T> ExecuteDeferred<T>(QueryCommand query, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
+            public virtual IEnumerable<T> ExecuteDeferred<T>(QueryCommand query, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
             {
                 this.LogCommand(query, paramValues);
                 this.StartUsingConnection();
