@@ -58,6 +58,34 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\AsyncQueryable.cs" />
+    <Compile Include="Base\CompoundKey.cs" />
+    <Compile Include="Base\DeferredList.cs" />
+    <Compile Include="Base\DeferredValue.cs" />
+    <Compile Include="Base\EnumerateOnce.cs" />
+    <Compile Include="Base\ExpressionComparer.cs" />
+    <Compile Include="Base\ExpressionEvaluator.cs" />
+    <Compile Include="Base\ExpressionExtensions.cs" />
+    <Compile Include="Base\ExpressionReplacer.cs" />
+    <Compile Include="Base\ExpressionVisitor.cs" />
+    <Compile Include="Base\ExpressionWriter.cs" />
+    <Compile Include="Base\Grouping.cs" />
+    <Compile Include="Base\IAsyncQueryProvider.cs" />
+    <Compile Include="Base\IEntityProvider.cs" />
+    <Compile Include="Base\MostRecentlyUsedCache.cs" />
+    <Compile Include="Base\Parameterizer.cs" />
+    <Compile Include="Base\PartialEvaluator.cs" />
+    <Compile Include="Base\Query.cs" />
+    <Compile Include="Base\QueryCache.cs" />
+    <Compile Include="Base\QueryCompiler.cs" />
+    <Compile Include="Base\QueryProvider.cs" />
+    <Compile Include="Base\ReadOnlyExtensions.cs" />
+    <Compile Include="Base\ReflectionExtensions.cs" />
+    <Compile Include="Base\ScopedDictionary.cs" />
+    <Compile Include="Base\StrongDelegate.cs" />
+    <Compile Include="Base\TopologicalSort.cs" />
+    <Compile Include="Base\TypedSubtreeFinder.cs" />
+    <Compile Include="Base\TypeHelper.cs" />
     <Compile Include="Common\ExecutionBuilder.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -117,12 +145,6 @@
     <Compile Include="Mapping\XmlMapping.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SQLiteQueryProvider.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\IQToolkit\IQToolkit.csproj">
-      <Project>{0DA62A7C-3B40-456F-A4B2-B3E19ED4080E}</Project>
-      <Name>IQToolkit</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Mono.Data.Sqlite.dll" />
