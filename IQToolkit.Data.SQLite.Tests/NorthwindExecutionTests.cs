@@ -26,7 +26,7 @@ namespace Test
         [ClassInitialize]
         public static void Initialize(TestContext context)
         {
-            var provider = DbEntityProvider.From(TestConstants.ConnectionString, TestConstants.MappingId);
+            var provider = EntityProvider.From(TestConstants.ConnectionString, TestConstants.MappingId);
             db = new Northwind(provider);
             InitBase(provider);
         }

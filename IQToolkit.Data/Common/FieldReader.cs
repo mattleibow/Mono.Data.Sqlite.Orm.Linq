@@ -18,10 +18,10 @@ namespace IQToolkit.Data.Common
     {
         TypeCode[] typeCodes;
 
-		private readonly DbEntityProvider.Executor executor;
+		private readonly EntityProvider.Executor executor;
         private readonly DbDataReader reader;
 
-		public FieldReader(DbEntityProvider.Executor executor, DbDataReader reader)
+		public FieldReader(EntityProvider.Executor executor, DbDataReader reader)
         {
             this.executor = executor;
             this.reader = reader;

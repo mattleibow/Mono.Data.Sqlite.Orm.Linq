@@ -38,7 +38,7 @@ namespace IQToolkit.Data.Common
 
 		public static Expression Build(QueryLinguist linguist, EntityPolicy policy, Expression expression, Expression provider)
         {
-            var executor = Expression.Parameter(typeof(DbEntityProvider.Executor), "executor");
+            var executor = Expression.Parameter(typeof(EntityProvider.Executor), "executor");
             var builder = new ExecutionBuilder(linguist, policy, executor);
             builder.variables.Add(executor);
 			builder.initializers.Add(Expression.Call(Expression.Convert(provider, typeof(EntityProvider)), "CreateExecutor", null, null));

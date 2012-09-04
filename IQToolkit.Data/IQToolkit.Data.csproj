@@ -92,7 +92,6 @@
     <Compile Include="Common\FieldReader.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DbEntityProvider.cs" />
     <Compile Include="Common\Expressions\Aggregator.cs" />
     <Compile Include="Common\Expressions\DbExpressionComparer.cs" />
     <Compile Include="Common\Expressions\DbExpressionExtensions.cs" />

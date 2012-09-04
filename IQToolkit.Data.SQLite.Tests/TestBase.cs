@@ -29,7 +29,7 @@ namespace Test
             }
         }
 
-        protected static DbEntityProvider _provider;
+        protected static EntityProvider _provider;
         private static readonly object gate = new object();
         private static bool _executeQueries;
         private static string _baseLinePath;
@@ -41,7 +41,7 @@ namespace Test
         {
         }
 
-        protected static void InitBase(DbEntityProvider provider, bool executeQueries = false, string baseLineFileName = null)
+        protected static void InitBase(EntityProvider provider, bool executeQueries = false, string baseLineFileName = null)
         {
             lock (gate)
             {
