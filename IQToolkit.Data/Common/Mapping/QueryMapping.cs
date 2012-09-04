@@ -263,7 +263,7 @@ namespace IQToolkit.Data.Common
             expression = QueryBinder.Bind(this, expression);
 
             // move aggregate computations so they occur in same select as group-by
-            expression = AggregateRewriter.Rewrite(this.Translator.Linguist.Language, expression);
+            expression = AggregateRewriter.Rewrite(expression);
 
             // do reduction so duplicate association's are likely to be clumped together
             expression = UnusedColumnRemover.Remove(expression);

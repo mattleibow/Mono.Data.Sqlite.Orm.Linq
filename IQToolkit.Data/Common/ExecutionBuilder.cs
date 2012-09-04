@@ -19,7 +19,6 @@ namespace IQToolkit.Data.Common
     public class ExecutionBuilder : DbExpressionVisitor
     {
 		EntityPolicy policy;
-        QueryLinguist linguist;
         Expression executor;
         Scope scope;
         bool isTop = true;
@@ -29,17 +28,16 @@ namespace IQToolkit.Data.Common
         List<Expression> initializers = new List<Expression>();
         Dictionary<string, Expression> variableMap = new Dictionary<string, Expression>();
 
-		private ExecutionBuilder(QueryLinguist linguist, EntityPolicy policy, Expression executor)
+		private ExecutionBuilder(EntityPolicy policy, Expression executor)
         {
-            this.linguist = linguist;
             this.policy = policy;
             this.executor = executor;
         }
 
-		public static Expression Build(QueryLinguist linguist, EntityPolicy policy, Expression expression, Expression provider)
+		public static Expression Build(EntityPolicy policy, Expression expression, Expression provider)
         {
             var executor = Expression.Parameter(typeof(EntityProvider.Executor), "executor");
-            var builder = new ExecutionBuilder(linguist, policy, executor);
+            var builder = new ExecutionBuilder(policy, executor);
             builder.variables.Add(executor);
 			builder.initializers.Add(Expression.Call(Expression.Convert(provider, typeof(EntityProvider)), "CreateExecutor", null, null));
             var result = builder.Build(expression);
@@ -114,7 +112,7 @@ namespace IQToolkit.Data.Common
 
         private Expression BuildInner(Expression expression)
         {
-            var eb = new ExecutionBuilder(this.linguist, this.policy, this.executor);
+            var eb = new ExecutionBuilder(this.policy, this.executor);
             eb.scope = this.scope;
             eb.receivingMember = this.receivingMember;
             eb.nReaders = this.nReaders;
@@ -216,7 +214,7 @@ namespace IQToolkit.Data.Common
             {
                 expression = VariableSubstitutor.Substitute(this.variableMap, expression);
             }
-            return this.linguist.Parameterize(expression);
+            return QueryLinguist.Parameterize(expression);
         }
 
         private Expression ExecuteProjection(ProjectionExpression projection, bool okayToDefer)

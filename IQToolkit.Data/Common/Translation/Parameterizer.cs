@@ -17,18 +17,16 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class Parameterizer : DbExpressionVisitor
     {
-        QueryLanguage language;
         Dictionary<TypeAndValue, NamedValueExpression> map = new Dictionary<TypeAndValue, NamedValueExpression>();
         Dictionary<HashedExpression, NamedValueExpression> pmap = new Dictionary<HashedExpression, NamedValueExpression>();
 
-        private Parameterizer(QueryLanguage language)
+        private Parameterizer()
         {
-            this.language = language;
         }
 
-        public static Expression Parameterize(QueryLanguage language, Expression expression)
+        public static Expression Parameterize(Expression expression)
         {
-            return new Parameterizer(language).Visit(expression);
+            return new Parameterizer().Visit(expression);
         }
 
         protected override Expression VisitProjection(ProjectionExpression proj)

@@ -406,7 +406,7 @@ namespace IQToolkit.Data.Common
             var table = new TableExpression(tableAlias, entity, this.mapping.GetTableName(entity));
 
             Expression projector = this.GetEntityExpression(table, entity);
-            var pc = ColumnProjector.ProjectColumns(this.translator.Linguist.Language, projector, null, selectAlias, tableAlias);
+            var pc = ColumnProjector.ProjectColumns(projector, null, selectAlias, tableAlias);
 
             var proj = new ProjectionExpression(
                 new SelectExpression(selectAlias, pc.Columns, table, null),
@@ -666,7 +666,7 @@ namespace IQToolkit.Data.Common
                 }
 
                 TableAlias newAlias = new TableAlias();
-                var pc = ColumnProjector.ProjectColumns(this.translator.Linguist.Language, projection.Projector, null, newAlias, projection.Select.Alias);
+                var pc = ColumnProjector.ProjectColumns(projection.Projector, null, newAlias, projection.Select.Alias);
 
                 LambdaExpression aggregator = Aggregator.GetAggregator(TypeHelper.GetMemberType(member), typeof(IEnumerable<>).MakeGenericType(pc.Projector.Type));
                 var result = new ProjectionExpression(
@@ -773,7 +773,7 @@ namespace IQToolkit.Data.Common
             Expression typeProjector = this.GetEntityExpression(tex, entity);
             Expression selection = DbExpressionReplacer.Replace(selector.Body, selector.Parameters[0], typeProjector);
             TableAlias newAlias = new TableAlias();
-            var pc = ColumnProjector.ProjectColumns(this.translator.Linguist.Language, selection, null, newAlias, tableAlias);
+            var pc = ColumnProjector.ProjectColumns(selection, null, newAlias, tableAlias);
             var pe = new ProjectionExpression(
                 new SelectExpression(newAlias, pc.Columns, tex, where),
                 pc.Projector,
@@ -884,7 +884,7 @@ namespace IQToolkit.Data.Common
             Expression where = this.GetIdentityCheck(tq.Select, entity, instance);
             Expression selection = DbExpressionReplacer.Replace(selector.Body, selector.Parameters[0], tq.Projector);
             TableAlias newAlias = new TableAlias();
-            var pc = ColumnProjector.ProjectColumns(this.translator.Linguist.Language, selection, null, newAlias, tq.Select.Alias);
+            var pc = ColumnProjector.ProjectColumns(selection, null, newAlias, tq.Select.Alias);
             return new ProjectionExpression(
                 new SelectExpression(newAlias, pc.Columns, tq.Select, where),
                 pc.Projector,

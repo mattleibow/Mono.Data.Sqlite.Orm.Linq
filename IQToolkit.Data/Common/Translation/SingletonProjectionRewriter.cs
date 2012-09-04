@@ -17,18 +17,16 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class SingletonProjectionRewriter : DbExpressionVisitor
     {
-        QueryLanguage language;
         bool isTopLevel = true;
         SelectExpression currentSelect;
 
-        private SingletonProjectionRewriter(QueryLanguage language)
+        private SingletonProjectionRewriter()
         {
-            this.language = language;
         }
 
-        public static Expression Rewrite(QueryLanguage language, Expression expression)
+        public static Expression Rewrite(Expression expression)
         {
-            return new SingletonProjectionRewriter(language).Visit(expression);
+            return new SingletonProjectionRewriter().Visit(expression);
         }
 
         protected override Expression VisitClientJoin(ClientJoinExpression join)
@@ -61,7 +59,7 @@ namespace IQToolkit.Data.Common
             if (proj.IsSingleton && this.CanJoinOnServer(this.currentSelect))
             {
                 TableAlias newAlias = new TableAlias();
-                this.currentSelect = this.currentSelect.AddRedundantSelect(this.language, newAlias);
+                this.currentSelect = this.currentSelect.AddRedundantSelect(newAlias);
 
                 // remap any references to the outer select to the new alias;
                 SelectExpression source =(SelectExpression)ColumnMapper.Map(proj.Select, newAlias, this.currentSelect.Alias);
@@ -69,7 +67,7 @@ namespace IQToolkit.Data.Common
                 // add outer-join test
                 ProjectionExpression pex = QueryLanguage.AddOuterJoinTest(new ProjectionExpression(source, proj.Projector));
 
-                var pc = ColumnProjector.ProjectColumns(this.language, pex.Projector, this.currentSelect.Columns, this.currentSelect.Alias, newAlias, proj.Select.Alias);
+                var pc = ColumnProjector.ProjectColumns(pex.Projector, this.currentSelect.Columns, this.currentSelect.Alias, newAlias, proj.Select.Alias);
 
                 JoinExpression join = new JoinExpression(JoinType.OuterApply, this.currentSelect.From, pex.Select, null);
 

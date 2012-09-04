@@ -17,16 +17,13 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class CrossApplyRewriter : DbExpressionVisitor
     {
-        QueryLanguage language;
-
-        private CrossApplyRewriter(QueryLanguage language)
+        private CrossApplyRewriter()
         {
-            this.language = language;
         }
 
-        public static Expression Rewrite(QueryLanguage language, Expression expression)
+        public static Expression Rewrite(Expression expression)
         {
-            return new CrossApplyRewriter(language).Visit(expression);
+            return new CrossApplyRewriter().Visit(expression);
         }
 
         protected override Expression VisitJoin(JoinExpression join)
@@ -61,7 +58,7 @@ namespace IQToolkit.Data.Common
                         {
                             Expression where = select.Where;
                             select = selectWithoutWhere;
-                            var pc = ColumnProjector.ProjectColumns(this.language, where, select.Columns, select.Alias, DeclaredAliasGatherer.Gather(select.From));
+                            var pc = ColumnProjector.ProjectColumns(where, select.Columns, select.Alias, DeclaredAliasGatherer.Gather(select.From));
                             select = select.SetColumns(pc.Columns);
                             where = pc.Projector;
                             JoinType jt = (where == null) ? JoinType.CrossJoin : (join.Join == JoinType.CrossApply ? JoinType.InnerJoin : JoinType.LeftOuter);

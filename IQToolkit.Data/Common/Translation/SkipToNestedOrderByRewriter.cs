@@ -14,16 +14,13 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class SkipToNestedOrderByRewriter : DbExpressionVisitor
     {
-        QueryLanguage language;
-
-        private SkipToNestedOrderByRewriter(QueryLanguage language)
+        private SkipToNestedOrderByRewriter()
         {
-            this.language = language;
         }
 
-        public static Expression Rewrite(QueryLanguage language, Expression expression)
+        public static Expression Rewrite(Expression expression)
         {
-            return new SkipToNestedOrderByRewriter(language).Visit(expression);
+            return new SkipToNestedOrderByRewriter().Visit(expression);
         }
 
         protected override Expression VisitSelect(SelectExpression select)
@@ -41,20 +38,20 @@ namespace IQToolkit.Data.Common
                 var skipPlusTake = PartialEvaluator.Eval(Expression.Add(skip, take));
 
                 select = select.SetTake(skipPlusTake).SetSkip(null);
-                select = select.AddRedundantSelect(this.language, new TableAlias());
+                select = select.AddRedundantSelect(new TableAlias());
                 select = select.SetTake(take);
 
                 // propogate order-bys to new layer
-                select = (SelectExpression)OrderByRewriter.Rewrite(this.language, select);
+                select = (SelectExpression)OrderByRewriter.Rewrite(select);
                 var inverted = select.OrderBy.Select(ob => new OrderExpression(
                     ob.OrderType == OrderType.Ascending ? OrderType.Descending : OrderType.Ascending,
                     ob.Expression
                     ));
                 select = select.SetOrderBy(inverted);
 
-                select = select.AddRedundantSelect(this.language, new TableAlias());
+                select = select.AddRedundantSelect(new TableAlias());
                 select = select.SetTake(Expression.Constant(0)); // temporary
-                select = (SelectExpression)OrderByRewriter.Rewrite(this.language, select);
+                select = (SelectExpression)OrderByRewriter.Rewrite(select);
                 var reverted = select.OrderBy.Select(ob => new OrderExpression(
                     ob.OrderType == OrderType.Ascending ? OrderType.Descending : OrderType.Ascending,
                     ob.Expression

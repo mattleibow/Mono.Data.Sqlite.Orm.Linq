@@ -192,7 +192,7 @@ namespace IQToolkit.Data.Common
 
             Expression projector = this.GetEntityExpression(root, entity);
             var selectAlias = new TableAlias();
-            var pc = ColumnProjector.ProjectColumns(this.Translator.Linguist.Language, projector, null, selectAlias, root.Alias);
+            var pc = ColumnProjector.ProjectColumns(projector, null, selectAlias, root.Alias);
             var proj = new ProjectionExpression(
                 new SelectExpression(selectAlias, pc.Columns, root, null),
                 pc.Projector

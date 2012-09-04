@@ -61,7 +61,7 @@ namespace IQToolkit.Data.Common
             return true;
         }
 
-        public static ProjectionExpression AddOuterJoinTest(this ProjectionExpression proj, QueryLanguage language, Expression expression)
+        public static ProjectionExpression AddOuterJoinTest(this ProjectionExpression proj, Expression expression)
         {
             string colName = proj.Select.Columns.GetAvailableColumnName("Test");
             var colType = DbTypeSystem.GetColumnType(expression.Type);
@@ -169,7 +169,7 @@ namespace IQToolkit.Data.Common
             return select;
         }
 
-        public static SelectExpression AddRedundantSelect(this SelectExpression sel, QueryLanguage language, TableAlias newAlias)
+        public static SelectExpression AddRedundantSelect(this SelectExpression sel, TableAlias newAlias)
         {
             var newColumns = 
                 from d in sel.Columns

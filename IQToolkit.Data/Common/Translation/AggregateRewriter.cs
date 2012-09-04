@@ -14,20 +14,18 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class AggregateRewriter : DbExpressionVisitor
     {
-        QueryLanguage language;
         ILookup<TableAlias, AggregateSubqueryExpression> lookup;
         Dictionary<AggregateSubqueryExpression, Expression> map;
 
-        private AggregateRewriter(QueryLanguage language, Expression expr)
+        private AggregateRewriter(Expression expr)
         {
-            this.language = language;
             this.map = new Dictionary<AggregateSubqueryExpression, Expression>();
             this.lookup = AggregateGatherer.Gather(expr).ToLookup(a => a.GroupByAlias);
         }
 
-        public static Expression Rewrite(QueryLanguage language, Expression expr)
+        public static Expression Rewrite(Expression expr)
         {
-            return new AggregateRewriter(language, expr).Visit(expr);
+            return new AggregateRewriter(expr).Visit(expr);
         }
 
         protected override Expression VisitSelect(SelectExpression select)

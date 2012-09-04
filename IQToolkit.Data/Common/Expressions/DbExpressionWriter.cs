@@ -18,34 +18,22 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class DbExpressionWriter : ExpressionWriter
     {
-        QueryLanguage language;
         Dictionary<TableAlias, int> aliasMap = new Dictionary<TableAlias, int>();
 
-        protected DbExpressionWriter(TextWriter writer, QueryLanguage language)
+        protected DbExpressionWriter(TextWriter writer)
             : base(writer)
         {
-            this.language = language;
         }
 
-        public new static void Write(TextWriter writer, Expression expression)
+        public static void Write(TextWriter writer, Expression expression)
         {
-            Write(writer, null, expression);
+            new DbExpressionWriter(writer).Visit(expression);
         }
 
-        public static void Write(TextWriter writer, QueryLanguage language, Expression expression)
-        {
-            new DbExpressionWriter(writer, language).Visit(expression);
-        }
-
-        public new static string WriteToString(Expression expression)
-        {
-            return WriteToString(null, expression);
-        }
-
-        public static string WriteToString(QueryLanguage language, Expression expression)
+        public static string WriteToString(Expression expression)
         {
             StringWriter sw = new StringWriter();
-            Write(sw, language, expression);
+            Write(sw, expression);
             return sw.ToString();
         }
 
@@ -164,10 +152,6 @@ namespace IQToolkit.Data.Common
 
         protected virtual string FormatQuery(Expression query)
         {
-            if (this.language != null)
-            {
-                //return this.language.Format(query);
-            }
             return SqlFormatter.Format(query, true);
         }
 

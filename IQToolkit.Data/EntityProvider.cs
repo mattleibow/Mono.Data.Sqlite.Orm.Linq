@@ -131,7 +131,6 @@ namespace IQToolkit.Data
                 throw new InvalidOperationException("Mapping not specified");
             if (policy == null)
                 throw new InvalidOperationException("Policy not specified");
-            this.Language = QueryLanguage.Default;
             this.Mapping = mapping;
             this.policy = policy;
             this.tables = new Dictionary<MappingEntity, IEntityTable>();
@@ -142,8 +141,6 @@ namespace IQToolkit.Data
         }
 
 	    public QueryMapping Mapping { get; private set; }
-
-	    public QueryLanguage Language { get; private set; }
 
 	    public EntityPolicy Policy
         {
@@ -301,12 +298,12 @@ namespace IQToolkit.Data
         public string GetQueryPlan(Expression expression)
         {
             Expression plan = this.GetExecutionPlan(expression);
-            return DbExpressionWriter.WriteToString(this.Language, plan);
+            return DbExpressionWriter.WriteToString(plan);
         }
 
 		private QueryTranslator CreateTranslator()
         {
-            return new QueryTranslator(this.Language, this.Mapping, this.policy);
+            return new QueryTranslator(this.Mapping, this.policy);
         }
 
 		public void DoConnected(Action action)

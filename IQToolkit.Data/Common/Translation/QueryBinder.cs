@@ -18,7 +18,6 @@ namespace IQToolkit.Data.Common
     public class QueryBinder : DbExpressionVisitor
     {
         QueryMapper mapper;
-        QueryLanguage language;
         Dictionary<ParameterExpression, Expression> map;
         Dictionary<Expression, GroupByInfo> groupByMap;
         Expression root;
@@ -27,7 +26,6 @@ namespace IQToolkit.Data.Common
         private QueryBinder(QueryMapper mapper, Expression root)
         {
             this.mapper = mapper;
-            this.language = mapper.Translator.Linguist.Language;
             this.map = new Dictionary<ParameterExpression, Expression>();
             this.groupByMap = new Dictionary<Expression, GroupByInfo>();
             this.root = root;
@@ -58,7 +56,7 @@ namespace IQToolkit.Data.Common
 
         private ProjectedColumns ProjectColumns(Expression expression, TableAlias newAlias, params TableAlias[] existingAliases)
         {
-            return ColumnProjector.ProjectColumns(this.language, expression, null, newAlias, existingAliases);
+            return ColumnProjector.ProjectColumns(expression, null, newAlias, existingAliases);
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression m)

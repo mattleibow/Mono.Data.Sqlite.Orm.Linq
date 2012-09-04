@@ -245,7 +245,7 @@ namespace IQToolkit.Data
 				}
 
 				// convert any singleton (1:1 or n:1) projections into server-side joins (cardinality is preserved)
-				rewritten = SingletonProjectionRewriter.Rewrite(this.Translator.Linguist.Language, expression);
+				rewritten = SingletonProjectionRewriter.Rewrite(expression);
 				if (rewritten != expression)
 				{
 					expression = rewritten;
@@ -256,7 +256,7 @@ namespace IQToolkit.Data
 				}
 
 				// convert projections into client-side joins
-				rewritten = ClientJoinedProjectionRewriter.Rewrite(this.Policy, this.Translator.Linguist.Language, expression);
+				rewritten = ClientJoinedProjectionRewriter.Rewrite(this.Policy, expression);
 				if (rewritten != expression)
 				{
 					expression = rewritten;
@@ -275,7 +275,7 @@ namespace IQToolkit.Data
 			/// </summary>
 			public Expression BuildExecutionPlan(Expression query, Expression provider)
 			{
-				return ExecutionBuilder.Build(this.Translator.Linguist, this.Policy, query, provider);
+				return ExecutionBuilder.Build(this.Policy, query, provider);
 			}
 		}
     }

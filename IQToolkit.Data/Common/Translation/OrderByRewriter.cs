@@ -17,20 +17,18 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class OrderByRewriter : DbExpressionVisitor
     {
-        QueryLanguage language;
         IList<OrderExpression> gatheredOrderings;
         bool isOuterMostSelect;
         bool suppressOrderby;
 
-        private OrderByRewriter(QueryLanguage language)
+        private OrderByRewriter()
         {
-            this.language = language;
             this.isOuterMostSelect = true;
         }
 
-        public static Expression Rewrite(QueryLanguage language, Expression expression)
+        public static Expression Rewrite(Expression expression)
         {
-            return new OrderByRewriter(language).Visit(expression);
+            return new OrderByRewriter().Visit(expression);
         }
 
         protected override Expression VisitSelect(SelectExpression select)

@@ -18,21 +18,19 @@ namespace IQToolkit.Data.Common
     public class ClientJoinedProjectionRewriter : DbExpressionVisitor
     {
         EntityPolicy policy;
-        QueryLanguage language;
         bool isTopLevel = true;
         SelectExpression currentSelect;
         MemberInfo currentMember;
         bool canJoinOnClient = true;
 
-        private ClientJoinedProjectionRewriter(EntityPolicy policy, QueryLanguage language)
+        private ClientJoinedProjectionRewriter(EntityPolicy policy)
         {
             this.policy = policy;
-            this.language = language;
         }
 
-        public static Expression Rewrite(EntityPolicy policy, QueryLanguage language, Expression expression)
+        public static Expression Rewrite(EntityPolicy policy, Expression expression)
         {
-            return new ClientJoinedProjectionRewriter(policy, language).Visit(expression);
+            return new ClientJoinedProjectionRewriter(policy).Visit(expression);
         }
 
         protected override MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
@@ -74,7 +72,7 @@ namespace IQToolkit.Data.Common
                         Expression newProjector = newInnerProjection.Projector;
 
                         TableAlias newAlias = new TableAlias();
-                        var pc = ColumnProjector.ProjectColumns(this.language, newProjector, null, newAlias, newOuterSelect.Alias, newInnerSelect.Alias);
+                        var pc = ColumnProjector.ProjectColumns(newProjector, null, newAlias, newOuterSelect.Alias, newInnerSelect.Alias);
 
                         JoinExpression join = new JoinExpression(JoinType.OuterApply, newOuterSelect, newInnerSelect, null);
                         SelectExpression joinedSelect = new SelectExpression(newAlias, pc.Columns, join, null, null, null, proj.IsSingleton, null, null, false);

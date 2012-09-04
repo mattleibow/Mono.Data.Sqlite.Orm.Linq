@@ -19,14 +19,12 @@ namespace IQToolkit.Data.Common
     {
         QueryMapper mapper;
         QueryMapping mapping;
-        QueryLanguage language;
         Expression currentFrom;
 
         private RelationshipBinder(QueryMapper mapper)
         {
             this.mapper = mapper;
             this.mapping = mapper.Mapping;
-            this.language = mapper.Translator.Linguist.Language;
         }
 
         public static Expression Bind(QueryMapper mapper, Expression expression)

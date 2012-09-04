@@ -17,14 +17,11 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class QueryTranslator
     {
-	    public QueryTranslator(QueryLanguage language, QueryMapping mapping, EntityPolicy policy)
+	    public QueryTranslator(QueryMapping mapping, EntityPolicy policy)
         {
-            this.Linguist = language.CreateLinguist(this);
             this.Mapper = mapping.CreateMapper(this);
             this.Police = policy.CreatePolice(this);
         }
-
-	    public QueryLinguist Linguist { get; private set; }
 
 	    public QueryMapper Mapper { get; private set; }
 
@@ -42,7 +39,7 @@ namespace IQToolkit.Data.Common
             expression = this.Police.Translate(expression);
 
             // any language specific translations or validations
-            expression = this.Linguist.Translate(expression);
+		    expression = QueryLinguist.Translate(expression);
 
             return expression;
         }

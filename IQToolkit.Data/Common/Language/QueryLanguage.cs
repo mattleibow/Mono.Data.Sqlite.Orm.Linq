@@ -15,7 +15,7 @@ namespace IQToolkit.Data.Common
     /// <summary>
     /// Defines the language rules for the query provider
     /// </summary>
-    public class QueryLanguage
+	public static class QueryLanguage
 	{
 		public static Expression GetGeneratedIdExpression(MemberInfo member)
 		{
@@ -235,37 +235,21 @@ namespace IQToolkit.Data.Common
                     return false;
             }
         }
-
-        public QueryLinguist CreateLinguist(QueryTranslator translator)
-        {
-            return new QueryLinguist(this, translator);
-        }
-
-		public static readonly QueryLanguage Default = new QueryLanguage();
 	}
 
-    public class QueryLinguist
+    public static class QueryLinguist
     {
-	    public QueryLinguist(QueryLanguage language, QueryTranslator translator)
-        {
-            this.Language = language;
-            this.Translator = translator;
-        }
-
-	    public QueryLanguage Language { get; private set; }
-
-	    public QueryTranslator Translator { get; private set; }
-
 	    /// <summary>
-        /// Provides language specific query translation.  Use this to apply language specific rewrites or
-        /// to make assertions/validations about the query.
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        public Expression Translate(Expression expression)
+	    /// Provides language specific query translation.  Use this to apply language specific rewrites or
+	    /// to make assertions/validations about the query.
+	    /// </summary>
+	    /// <param name="expression"></param>
+	    /// <param name="queryLanguage"> </param>
+	    /// <returns></returns>
+	    public static Expression Translate(Expression expression)
 		{   
 			// fix up any order-by's
-			expression = OrderByRewriter.Rewrite(this.Language, expression);
+			expression = OrderByRewriter.Rewrite(expression);
 
             // remove redundant layers again before cross apply rewrite
             expression = UnusedColumnRemover.Remove(expression);
@@ -273,7 +257,7 @@ namespace IQToolkit.Data.Common
             expression = RedundantSubqueryRemover.Remove(expression);
 
             // convert cross-apply and outer-apply joins into inner & left-outer-joins if possible
-            var rewritten = CrossApplyRewriter.Rewrite(this.Language, expression);
+            var rewritten = CrossApplyRewriter.Rewrite(expression);
 
             // convert cross joins into inner joins
             rewritten = CrossJoinRewriter.Rewrite(rewritten);
@@ -305,14 +289,15 @@ namespace IQToolkit.Data.Common
 			return SqlFormatter.Format(expression);
         }
 
-        /// <summary>
-        /// Determine which sub-expressions must be parameters
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        public Expression Parameterize(Expression expression)
+	    /// <summary>
+	    /// Determine which sub-expressions must be parameters
+	    /// </summary>
+	    /// <param name="expression"></param>
+	    /// <param name="queryLanguage"> </param>
+	    /// <returns></returns>
+	    public static Expression Parameterize(Expression expression)
         {
-            return Parameterizer.Parameterize(this.Language, expression);
+			return Parameterizer.Parameterize(expression);
         }
     }
 }

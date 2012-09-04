@@ -17,8 +17,6 @@ namespace IQToolkit.Data.Common
 	/// </summary>
 	public class SqlFormatter : DbExpressionVisitor
 	{
-		private QueryLanguage language;
-
 		private StringBuilder sb;
 
 		private int indent = 2;
@@ -35,34 +33,28 @@ namespace IQToolkit.Data.Common
 
 		private bool forDebug;
 
-		private SqlFormatter(QueryLanguage language, bool forDebug)
+		private SqlFormatter(bool forDebug)
 		{
-			this.language = language;
 			this.sb = new StringBuilder();
 			this.aliases = new Dictionary<TableAlias, string>();
 			this.forDebug = forDebug;
 		}
 
-		private SqlFormatter(QueryLanguage language)
-			: this(language, false)
+		private SqlFormatter()
+			: this(false)
 		{
 		}
 
 		public static string Format(Expression expression, bool forDebug)
 		{
-			var formatter = new SqlFormatter(null, forDebug);
+			var formatter = new SqlFormatter(forDebug);
 			formatter.Visit(expression);
 			return formatter.ToString();
 		}
 
 		public static string Format(Expression expression)
 		{
-			return Format(expression, new QueryLanguage());
-		}
-
-		public static string Format(Expression expression, QueryLanguage language)
-		{
-			SqlFormatter formatter = new SqlFormatter(language);
+			SqlFormatter formatter = new SqlFormatter();
 			formatter.Visit(expression);
 			return formatter.ToString();
 		}
@@ -70,14 +62,6 @@ namespace IQToolkit.Data.Common
 		public override string ToString()
 		{
 			return this.sb.ToString();
-		}
-
-		private QueryLanguage Language
-		{
-			get
-			{
-				return this.language;
-			}
 		}
 
 		private bool HideColumnAliases
@@ -179,13 +163,13 @@ namespace IQToolkit.Data.Common
 
 		private void WriteColumnName(string columnName)
 		{
-			string name = (this.Language != null) ? QueryLanguage.Quote(columnName) : columnName;
+			string name = QueryLanguage.Quote(columnName);
 			this.Write(name);
 		}
 
 		private void WriteTableName(string tableName)
 		{
-			string name = (this.Language != null) ? QueryLanguage.Quote(tableName) : tableName;
+			string name = QueryLanguage.Quote(tableName);
 			this.Write(name);
 		}
 

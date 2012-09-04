@@ -43,7 +43,6 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class ColumnProjector : DbExpressionVisitor
     {
-        QueryLanguage language;
         Dictionary<ColumnExpression, ColumnExpression> map;
         List<ColumnDeclaration> columns;
         HashSet<string> columnNames;
@@ -52,9 +51,8 @@ namespace IQToolkit.Data.Common
         TableAlias newAlias;
         int iColumn;
 
-        private ColumnProjector(QueryLanguage language, Expression expression, IEnumerable<ColumnDeclaration> existingColumns, TableAlias newAlias, IEnumerable<TableAlias> existingAliases)
+        private ColumnProjector(Expression expression, IEnumerable<ColumnDeclaration> existingColumns, TableAlias newAlias, IEnumerable<TableAlias> existingAliases)
         {
-            this.language = language;
             this.newAlias = newAlias;
             this.existingAliases = new HashSet<TableAlias>(existingAliases);
             this.map = new Dictionary<ColumnExpression, ColumnExpression>();
@@ -68,19 +66,19 @@ namespace IQToolkit.Data.Common
                 this.columns = new List<ColumnDeclaration>();
                 this.columnNames = new HashSet<string>();
             }
-            this.candidates = Nominator.Nominate(language, expression);
+            this.candidates = Nominator.Nominate(expression);
         }
 
-        public static ProjectedColumns ProjectColumns(QueryLanguage language, Expression expression, IEnumerable<ColumnDeclaration> existingColumns, TableAlias newAlias, IEnumerable<TableAlias> existingAliases)
+        public static ProjectedColumns ProjectColumns(Expression expression, IEnumerable<ColumnDeclaration> existingColumns, TableAlias newAlias, IEnumerable<TableAlias> existingAliases)
         {
-            ColumnProjector projector = new ColumnProjector(language, expression, existingColumns, newAlias, existingAliases);
+            ColumnProjector projector = new ColumnProjector(expression, existingColumns, newAlias, existingAliases);
             Expression expr = projector.Visit(expression);
             return new ProjectedColumns(expr, projector.columns.AsReadOnly());
         }
 
-        public static ProjectedColumns ProjectColumns(QueryLanguage language, Expression expression, IEnumerable<ColumnDeclaration> existingColumns, TableAlias newAlias, params TableAlias[] existingAliases)
+        public static ProjectedColumns ProjectColumns(Expression expression, IEnumerable<ColumnDeclaration> existingColumns, TableAlias newAlias, params TableAlias[] existingAliases)
         {
-            return ProjectColumns(language, expression, existingColumns, newAlias, (IEnumerable<TableAlias>)existingAliases);
+            return ProjectColumns(expression, existingColumns, newAlias, (IEnumerable<TableAlias>)existingAliases);
         }
 
         protected override Expression Visit(Expression expression)
@@ -159,20 +157,18 @@ namespace IQToolkit.Data.Common
         /// </summary>
         class Nominator : DbExpressionVisitor
         {
-            QueryLanguage language;
             bool isBlocked;
             HashSet<Expression> candidates;
 
-            private Nominator(QueryLanguage language)
+            private Nominator()
             {
-                this.language = language;
                 this.candidates = new HashSet<Expression>();
                 this.isBlocked = false;
             }
 
-            internal static HashSet<Expression> Nominate(QueryLanguage language, Expression expression)
+            internal static HashSet<Expression> Nominate(Expression expression)
             {
-                Nominator nominator = new Nominator(language);
+                Nominator nominator = new Nominator();
                 nominator.Visit(expression);
                 return nominator.candidates;
             }

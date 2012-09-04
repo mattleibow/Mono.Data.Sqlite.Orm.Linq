@@ -15,18 +15,16 @@ namespace IQToolkit.Data.Common
     /// </summary>
     public class SkipToRowNumberRewriter : DbExpressionVisitor
     {
-        private readonly QueryLanguage language;
         private readonly string columnName;
 
-        private SkipToRowNumberRewriter(QueryLanguage language, string columnName = "_rownumber")
+        private SkipToRowNumberRewriter(string columnName = "_rownumber")
         {
-            this.language = language;
             this.columnName = columnName;
         }
 
-        public static Expression Rewrite(QueryLanguage language, Expression expression)
+        public static Expression Rewrite(Expression expression)
         {
-            return new SkipToRowNumberRewriter(language).Visit(expression);
+            return new SkipToRowNumberRewriter().Visit(expression);
         }
 
         protected override Expression VisitSelect(SelectExpression select)
@@ -38,14 +36,14 @@ namespace IQToolkit.Data.Common
                 bool canAddColumn = !select.IsDistinct && (select.GroupBy == null || select.GroupBy.Count == 0);
                 if (!canAddColumn)
                 {
-                    newSelect = newSelect.AddRedundantSelect(this.language, new TableAlias());
+                    newSelect = newSelect.AddRedundantSelect(new TableAlias());
                 }
 
                 var colType = DbTypeSystem.GetColumnType(typeof(int));
                 newSelect = newSelect.AddColumn(new ColumnDeclaration(columnName, new RowNumberExpression(select.OrderBy), colType));
 
                 // add layer for WHERE clause that references new rownum column
-                newSelect = newSelect.AddRedundantSelect(this.language, new TableAlias());
+                newSelect = newSelect.AddRedundantSelect(new TableAlias());
                 newSelect = newSelect.RemoveColumn(newSelect.Columns.Single(c => c.Name == columnName));
 
                 var newAlias = ((SelectExpression)newSelect.From).Alias;

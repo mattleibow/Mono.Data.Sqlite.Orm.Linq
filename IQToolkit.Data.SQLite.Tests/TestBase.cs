@@ -156,7 +156,7 @@ namespace Test
 
             if (pro.Log != null)
             {
-                DbExpressionWriter.Write(pro.Log, pro.Language, query);
+                DbExpressionWriter.Write(pro.Log, query);
                 pro.Log.WriteLine();
                 pro.Log.WriteLine("==>");
             }
