@@ -12,96 +12,97 @@ using System.Text;
 
 namespace IQToolkit.Data.Common
 {
-    /// <summary>
-    /// Rewrites nested singleton projection into server-side joins
-    /// </summary>
-    public class SingletonProjectionRewriter : DbExpressionVisitor
-    {
-        bool isTopLevel = true;
-        SelectExpression currentSelect;
+	/// <summary>
+	/// Rewrites nested singleton projection into server-side joins
+	/// </summary>
+	public class SingletonProjectionRewriter : DbExpressionVisitor
+	{
+		private bool isTopLevel = true;
 
-        private SingletonProjectionRewriter()
-        {
-        }
+		private SelectExpression currentSelect;
 
-        public static Expression Rewrite(Expression expression)
-        {
-            return new SingletonProjectionRewriter().Visit(expression);
-        }
+		private SingletonProjectionRewriter()
+		{
+		}
 
-        protected override Expression VisitClientJoin(ClientJoinExpression join)
-        {
-            // treat client joins as new top level
-            var saveTop = this.isTopLevel;
-            var saveSelect = this.currentSelect;
-            this.isTopLevel = true;
-            this.currentSelect = null;
-            Expression result = base.VisitClientJoin(join);
-            this.isTopLevel = saveTop;
-            this.currentSelect = saveSelect;
-            return result;
-        }
+		public static Expression Rewrite(Expression expression)
+		{
+			return new SingletonProjectionRewriter().Visit(expression);
+		}
 
-        protected override Expression VisitProjection(ProjectionExpression proj)
-        {
-            if (isTopLevel)
-            {
-                isTopLevel = false;
-                this.currentSelect = proj.Select;
-                Expression projector = this.Visit(proj.Projector);
-                if (projector != proj.Projector || this.currentSelect != proj.Select)
-                {
-                    return new ProjectionExpression(this.currentSelect, projector, proj.Aggregator);
-                }
-                return proj;
-            }
+		protected override Expression VisitClientJoin(ClientJoinExpression join)
+		{
+			// treat client joins as new top level
+			var saveTop = this.isTopLevel;
+			var saveSelect = this.currentSelect;
+			this.isTopLevel = true;
+			this.currentSelect = null;
+			Expression result = base.VisitClientJoin(join);
+			this.isTopLevel = saveTop;
+			this.currentSelect = saveSelect;
+			return result;
+		}
 
-            if (proj.IsSingleton && this.CanJoinOnServer(this.currentSelect))
-            {
-                TableAlias newAlias = new TableAlias();
-                this.currentSelect = this.currentSelect.AddRedundantSelect(newAlias);
+		protected override Expression VisitProjection(ProjectionExpression proj)
+		{
+			if (isTopLevel)
+			{
+				isTopLevel = false;
+				this.currentSelect = proj.Select;
+				Expression projector = this.Visit(proj.Projector);
+				if (projector != proj.Projector || this.currentSelect != proj.Select)
+				{
+					return new ProjectionExpression(this.currentSelect, projector, proj.Aggregator);
+				}
+				return proj;
+			}
 
-                // remap any references to the outer select to the new alias;
-                SelectExpression source =(SelectExpression)ColumnMapper.Map(proj.Select, newAlias, this.currentSelect.Alias);
+			if (proj.IsSingleton && this.CanJoinOnServer(this.currentSelect))
+			{
+				TableAlias newAlias = new TableAlias();
+				this.currentSelect = this.currentSelect.AddRedundantSelect(newAlias);
 
-                // add outer-join test
-                ProjectionExpression pex = QueryLanguage.AddOuterJoinTest(new ProjectionExpression(source, proj.Projector));
+				// remap any references to the outer select to the new alias;
+				SelectExpression source = (SelectExpression)ColumnMapper.Map(proj.Select, newAlias, this.currentSelect.Alias);
 
-                var pc = ColumnProjector.ProjectColumns(pex.Projector, this.currentSelect.Columns, this.currentSelect.Alias, newAlias, proj.Select.Alias);
+				// add outer-join test
+				ProjectionExpression pex = QueryLanguage.AddOuterJoinTest(new ProjectionExpression(source, proj.Projector));
 
-                JoinExpression join = new JoinExpression(JoinType.OuterApply, this.currentSelect.From, pex.Select, null);
+				var pc = ColumnProjector.ProjectColumns(
+					pex.Projector, this.currentSelect.Columns, this.currentSelect.Alias, newAlias, proj.Select.Alias);
 
-                this.currentSelect = new SelectExpression(this.currentSelect.Alias, pc.Columns, join, null);
-                return this.Visit(pc.Projector);
-            }
+				JoinExpression join = new JoinExpression(JoinType.OuterApply, this.currentSelect.From, pex.Select, null);
 
-            var saveTop = this.isTopLevel;
-            var saveSelect = this.currentSelect;
-            this.isTopLevel = true;
-            this.currentSelect = null;
-            Expression result = base.VisitProjection(proj);
-            this.isTopLevel = saveTop;
-            this.currentSelect = saveSelect;
-            return result;
-        }
+				this.currentSelect = new SelectExpression(this.currentSelect.Alias, pc.Columns, join, null);
+				return this.Visit(pc.Projector);
+			}
 
-        private bool CanJoinOnServer(SelectExpression select)
-        {
-            // can add singleton (1:0,1) join if no grouping/aggregates or distinct
-            return !select.IsDistinct
-                && (select.GroupBy == null || select.GroupBy.Count == 0)
-                && !AggregateChecker.HasAggregates(select);
-        }
+			var saveTop = this.isTopLevel;
+			var saveSelect = this.currentSelect;
+			this.isTopLevel = true;
+			this.currentSelect = null;
+			Expression result = base.VisitProjection(proj);
+			this.isTopLevel = saveTop;
+			this.currentSelect = saveSelect;
+			return result;
+		}
 
-        protected override Expression VisitSubquery(SubqueryExpression subquery)
-        {
-            return subquery;
-        }
+		private bool CanJoinOnServer(SelectExpression select)
+		{
+			// can add singleton (1:0,1) join if no grouping/aggregates or distinct
+			return !select.IsDistinct && (select.GroupBy == null || select.GroupBy.Count == 0)
+			       && !AggregateChecker.HasAggregates(select);
+		}
 
-        protected override Expression VisitCommand(CommandExpression command)
-        {
-            this.isTopLevel = true;
-            return base.VisitCommand(command);
-        }
-    }
+		protected override Expression VisitSubquery(SubqueryExpression subquery)
+		{
+			return subquery;
+		}
+
+		protected override Expression VisitCommand(CommandExpression command)
+		{
+			this.isTopLevel = true;
+			return base.VisitCommand(command);
+		}
+	}
 }

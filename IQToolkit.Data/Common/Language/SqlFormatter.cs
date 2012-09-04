@@ -237,7 +237,10 @@ namespace IQToolkit.Data.Common
 
 		protected override Expression Visit(Expression exp)
 		{
-			if (exp == null) return null;
+			if (exp == null)
+			{
+				return null;
+			}
 
 			// check for supported node types first 
 			// non-supported ones should not be visited (as they would produce bad SQL)
@@ -442,7 +445,10 @@ namespace IQToolkit.Data.Common
 						}
 						for (int i = 0, n = args.Count; i < n; i++)
 						{
-							if (i > 0) this.Write(" || ");
+							if (i > 0)
+							{
+								this.Write(" || ");
+							}
 							this.Visit(args[i]);
 						}
 						return m;
@@ -740,7 +746,10 @@ namespace IQToolkit.Data.Common
 				this.Write("(");
 				for (int i = 0; i < m.Arguments.Count; i++)
 				{
-					if (i > 0) this.Write(", ");
+					if (i > 0)
+					{
+						this.Write(", ");
+					}
 					this.Visit(m.Arguments[i]);
 				}
 				this.Write(")");
@@ -808,7 +817,10 @@ namespace IQToolkit.Data.Common
 				this.Write("(");
 				for (int i = 0; i < nex.Arguments.Count; i++)
 				{
-					if (i > 0) this.Write(", ");
+					if (i > 0)
+					{
+						this.Write(", ");
+					}
 					this.Visit(nex.Arguments[i]);
 				}
 				this.Write(")");
@@ -1243,7 +1255,7 @@ namespace IQToolkit.Data.Common
 			}
 			else if (value.GetType().IsEnum)
 			{
-				this.Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())));
+				this.Write(Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType()), CultureInfo.InvariantCulture));
 			}
 			else
 			{
@@ -1600,7 +1612,10 @@ namespace IQToolkit.Data.Common
 					this.Write(" IN (");
 					for (int i = 0, n = @in.Values.Count; i < n; i++)
 					{
-						if (i > 0) this.Write(", ");
+						if (i > 0)
+						{
+							this.Write(", ");
+						}
 						this.VisitValue(@in.Values[i]);
 					}
 					this.Write(")");
@@ -1633,7 +1648,10 @@ namespace IQToolkit.Data.Common
 			for (int i = 0, n = insert.Assignments.Count; i < n; i++)
 			{
 				ColumnAssignment ca = insert.Assignments[i];
-				if (i > 0) this.Write(", ");
+				if (i > 0)
+				{
+					this.Write(", ");
+				}
 				this.WriteColumnName(ca.Column.Name);
 			}
 			this.Write(")");
@@ -1642,7 +1660,10 @@ namespace IQToolkit.Data.Common
 			for (int i = 0, n = insert.Assignments.Count; i < n; i++)
 			{
 				ColumnAssignment ca = insert.Assignments[i];
-				if (i > 0) this.Write(", ");
+				if (i > 0)
+				{
+					this.Write(", ");
+				}
 				this.Visit(ca.Expression);
 			}
 			this.Write(")");
@@ -1660,7 +1681,10 @@ namespace IQToolkit.Data.Common
 			for (int i = 0, n = update.Assignments.Count; i < n; i++)
 			{
 				ColumnAssignment ca = update.Assignments[i];
-				if (i > 0) this.Write(", ");
+				if (i > 0)
+				{
+					this.Write(", ");
+				}
 				this.Visit(ca.Column);
 				this.Write(" = ");
 				this.Visit(ca.Expression);
@@ -1736,7 +1760,10 @@ namespace IQToolkit.Data.Common
 				this.Write("(");
 				for (int i = 0, n = func.Arguments.Count; i < n; i++)
 				{
-					if (i > 0) this.Write(", ");
+					if (i > 0)
+					{
+						this.Write(", ");
+					}
 					this.Visit(func.Arguments[i]);
 				}
 				this.Write(")");

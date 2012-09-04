@@ -8,37 +8,43 @@ using System.Linq;
 
 namespace IQToolkit
 {
-    /// <summary>
-    /// Simple implementation of the IGrouping<TKey, TElement> interface
-    /// </summary>
-    /// <typeparam name="TKey"></typeparam>
-    /// <typeparam name="TElement"></typeparam>
-    public class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
-    {
-        TKey key;
-        IEnumerable<TElement> group;
+	/// <summary>
+	/// Simple implementation of the IGrouping<TKey, TElement> interface
+	/// </summary>
+	/// <typeparam name="TKey"></typeparam>
+	/// <typeparam name="TElement"></typeparam>
+	public class Grouping<TKey, TElement> : IGrouping<TKey, TElement>
+	{
+		private TKey key;
 
-        public Grouping(TKey key, IEnumerable<TElement> group)
-        {
-            this.key = key;
-            this.group = group;
-        }
+		private IEnumerable<TElement> group;
 
-        public TKey Key
-        {
-            get { return this.key; }
-        }
+		public Grouping(TKey key, IEnumerable<TElement> group)
+		{
+			this.key = key;
+			this.group = group;
+		}
 
-        public IEnumerator<TElement> GetEnumerator()
-        {
-            if (!(group is List<TElement>))
-                group = group.ToList();
-            return this.group.GetEnumerator();
-        }
+		public TKey Key
+		{
+			get
+			{
+				return this.key;
+			}
+		}
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.group.GetEnumerator();
-        }
-    }   
+		public IEnumerator<TElement> GetEnumerator()
+		{
+			if (!(group is List<TElement>))
+			{
+				group = group.ToList();
+			}
+			return this.group.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return this.group.GetEnumerator();
+		}
+	}
 }

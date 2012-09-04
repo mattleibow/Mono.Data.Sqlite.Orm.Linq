@@ -8,32 +8,32 @@ using System.Collections.ObjectModel;
 
 namespace IQToolkit.Data.Common
 {
-    public class QueryCommand
-    {
-	    public QueryCommand(string commandText, IEnumerable<QueryParameter> parameters)
-        {
-            this.CommandText = commandText;
-            this.Parameters = parameters.ToReadOnly();
-        }
+	public class QueryCommand
+	{
+		public QueryCommand(string commandText, IEnumerable<QueryParameter> parameters)
+		{
+			this.CommandText = commandText;
+			this.Parameters = parameters.ToReadOnly();
+		}
 
-	    public string CommandText { get; private set; }
+		public string CommandText { get; private set; }
 
-	    public ReadOnlyCollection<QueryParameter> Parameters { get; private set; }
-    }
+		public ReadOnlyCollection<QueryParameter> Parameters { get; private set; }
+	}
 
-    public class QueryParameter
-    {
-	    public QueryParameter(string name, Type type, DbQueryType queryType)
-        {
-            this.Name = name;
-            this.Type = type;
-            this.QueryType = queryType;
-        }
+	public class QueryParameter
+	{
+		public QueryParameter(string name, Type type, DbQueryType queryType)
+		{
+			this.Name = name;
+			this.Type = type;
+			this.QueryType = queryType;
+		}
 
-	    public string Name { get; private set; }
+		public string Name { get; private set; }
 
-	    public Type Type { get; private set; }
+		public Type Type { get; private set; }
 
-	    public DbQueryType QueryType { get; private set; }
-    }
+		public DbQueryType QueryType { get; private set; }
+	}
 }

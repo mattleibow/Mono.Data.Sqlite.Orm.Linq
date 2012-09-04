@@ -16,164 +16,177 @@ namespace IQToolkit.Data
 	/// <summary>
 	/// Defines query execution & materialization policies. 
 	/// </summary>
-    public class EntityPolicy
-    {
-		readonly HashSet<MemberInfo> included = new HashSet<MemberInfo>();
-		readonly HashSet<MemberInfo> deferred = new HashSet<MemberInfo>();
-		readonly Dictionary<MemberInfo, List<LambdaExpression>> operations = new Dictionary<MemberInfo, List<LambdaExpression>>();
+	public class EntityPolicy
+	{
+		private readonly HashSet<MemberInfo> included = new HashSet<MemberInfo>();
+
+		private readonly HashSet<MemberInfo> deferred = new HashSet<MemberInfo>();
+
+		private readonly Dictionary<MemberInfo, List<LambdaExpression>> operations =
+			new Dictionary<MemberInfo, List<LambdaExpression>>();
+
 		public static readonly EntityPolicy Default = new EntityPolicy();
 
 		public void Apply(LambdaExpression fnApply)
-        {
-            if (fnApply == null)
-                throw new ArgumentNullException("fnApply");
-            if (fnApply.Parameters.Count != 1)
-                throw new ArgumentException("Apply function has wrong number of arguments.");
-            this.AddOperation(TypeHelper.GetElementType(fnApply.Parameters[0].Type), fnApply);
-        }
+		{
+			if (fnApply == null)
+			{
+				throw new ArgumentNullException("fnApply");
+			}
+			if (fnApply.Parameters.Count != 1)
+			{
+				throw new ArgumentException("Apply function has wrong number of arguments.");
+			}
+			this.AddOperation(TypeHelper.GetElementType(fnApply.Parameters[0].Type), fnApply);
+		}
 
-        public void Apply<TEntity>(Expression<Func<IEnumerable<TEntity>, IEnumerable<TEntity>>> fnApply)
-        {
-            this.Apply((LambdaExpression)fnApply);
-        }
+		public void Apply<TEntity>(Expression<Func<IEnumerable<TEntity>, IEnumerable<TEntity>>> fnApply)
+		{
+			this.Apply((LambdaExpression)fnApply);
+		}
 
-        public void Include(MemberInfo member)
-        {
-            this.Include(member, false);
-        }
+		public void Include(MemberInfo member)
+		{
+			this.Include(member, false);
+		}
 
-        public void Include(MemberInfo member, bool deferLoad)
-        {
-            this.included.Add(member);
-            if (deferLoad)
-                this.Defer(member);
-        }
+		public void Include(MemberInfo member, bool deferLoad)
+		{
+			this.included.Add(member);
+			if (deferLoad)
+			{
+				this.Defer(member);
+			}
+		}
 
-        public void IncludeWith(LambdaExpression fnMember)
-        {
-            this.IncludeWith(fnMember, false);
-        }
+		public void IncludeWith(LambdaExpression fnMember)
+		{
+			this.IncludeWith(fnMember, false);
+		}
 
-        public void IncludeWith(LambdaExpression fnMember, bool deferLoad)
-        {
-            var rootMember = RootMemberFinder.Find(fnMember, fnMember.Parameters[0]);
-            if (rootMember == null)
-                throw new InvalidOperationException("Subquery does not originate with a member access");
-            this.Include(rootMember.Member, deferLoad);
-            if (rootMember != fnMember.Body)
-            {
-                this.AssociateWith(fnMember);
-            }
-        }
+		public void IncludeWith(LambdaExpression fnMember, bool deferLoad)
+		{
+			var rootMember = RootMemberFinder.Find(fnMember, fnMember.Parameters[0]);
+			if (rootMember == null)
+			{
+				throw new InvalidOperationException("Subquery does not originate with a member access");
+			}
+			this.Include(rootMember.Member, deferLoad);
+			if (rootMember != fnMember.Body)
+			{
+				this.AssociateWith(fnMember);
+			}
+		}
 
-        public void IncludeWith<TEntity>(Expression<Func<TEntity, object>> fnMember)
-        {
-            this.IncludeWith((LambdaExpression)fnMember, false);
-        }
+		public void IncludeWith<TEntity>(Expression<Func<TEntity, object>> fnMember)
+		{
+			this.IncludeWith((LambdaExpression)fnMember, false);
+		}
 
-        public void IncludeWith<TEntity>(Expression<Func<TEntity, object>> fnMember, bool deferLoad)
-        {
-            this.IncludeWith((LambdaExpression)fnMember, deferLoad);
-        }
+		public void IncludeWith<TEntity>(Expression<Func<TEntity, object>> fnMember, bool deferLoad)
+		{
+			this.IncludeWith((LambdaExpression)fnMember, deferLoad);
+		}
 
-        private void Defer(MemberInfo member)
-        {
-            Type mType = TypeHelper.GetMemberType(member);
-            if (mType.IsGenericType)
-            {
-                var gType = mType.GetGenericTypeDefinition();
-                if (gType != typeof(IEnumerable<>)
-                    && gType != typeof(IList<>)
-                    && !typeof(IDeferLoadable).IsAssignableFrom(mType))
-                {
-                    throw new InvalidOperationException(string.Format("The member '{0}' cannot be deferred due to its type.", member));
-                }
-            }
-            this.deferred.Add(member);
-        }
+		private void Defer(MemberInfo member)
+		{
+			Type mType = TypeHelper.GetMemberType(member);
+			if (mType.IsGenericType)
+			{
+				var gType = mType.GetGenericTypeDefinition();
+				if (gType != typeof(IEnumerable<>) && gType != typeof(IList<>) && !typeof(IDeferLoadable).IsAssignableFrom(mType))
+				{
+					throw new InvalidOperationException(string.Format("The member '{0}' cannot be deferred due to its type.", member));
+				}
+			}
+			this.deferred.Add(member);
+		}
 
-        public void AssociateWith(LambdaExpression memberQuery)
-        {
-            var rootMember = RootMemberFinder.Find(memberQuery, memberQuery.Parameters[0]);
-            if (rootMember == null)
-                throw new InvalidOperationException("Subquery does not originate with a member access");
-            if (rootMember != memberQuery.Body)
-            {
-                var memberParam = Expression.Parameter(rootMember.Type, "root");
-                var newBody = ExpressionReplacer.Replace(memberQuery.Body, rootMember, memberParam);
-                this.AddOperation(rootMember.Member, Expression.Lambda(newBody, memberParam));
-            }
-        }
+		public void AssociateWith(LambdaExpression memberQuery)
+		{
+			var rootMember = RootMemberFinder.Find(memberQuery, memberQuery.Parameters[0]);
+			if (rootMember == null)
+			{
+				throw new InvalidOperationException("Subquery does not originate with a member access");
+			}
+			if (rootMember != memberQuery.Body)
+			{
+				var memberParam = Expression.Parameter(rootMember.Type, "root");
+				var newBody = ExpressionReplacer.Replace(memberQuery.Body, rootMember, memberParam);
+				this.AddOperation(rootMember.Member, Expression.Lambda(newBody, memberParam));
+			}
+		}
 
-        private void AddOperation(MemberInfo member, LambdaExpression operation)
-        {
-            List<LambdaExpression> memberOps;
-            if (!this.operations.TryGetValue(member, out memberOps))
-            {
-                memberOps = new List<LambdaExpression>();
-                this.operations.Add(member, memberOps);
-            }
-            memberOps.Add(operation);
-        }
+		private void AddOperation(MemberInfo member, LambdaExpression operation)
+		{
+			List<LambdaExpression> memberOps;
+			if (!this.operations.TryGetValue(member, out memberOps))
+			{
+				memberOps = new List<LambdaExpression>();
+				this.operations.Add(member, memberOps);
+			}
+			memberOps.Add(operation);
+		}
 
-        public void AssociateWith<TEntity>(Expression<Func<TEntity, IEnumerable>> memberQuery)
-        {
-            this.AssociateWith((LambdaExpression)memberQuery);
-        }
+		public void AssociateWith<TEntity>(Expression<Func<TEntity, IEnumerable>> memberQuery)
+		{
+			this.AssociateWith((LambdaExpression)memberQuery);
+		}
 
-        class RootMemberFinder : ExpressionVisitor
-        {
-            MemberExpression found;
-            ParameterExpression parameter;
+		private class RootMemberFinder : ExpressionVisitor
+		{
+			private MemberExpression found;
 
-            private RootMemberFinder(ParameterExpression parameter)
-            {
-                this.parameter = parameter;
-            }
+			private ParameterExpression parameter;
 
-            public static MemberExpression Find(Expression query, ParameterExpression parameter)
-            {
-                var finder = new RootMemberFinder(parameter);
-                finder.Visit(query);
-                return finder.found;
-            }
+			private RootMemberFinder(ParameterExpression parameter)
+			{
+				this.parameter = parameter;
+			}
 
-            protected override Expression VisitMethodCall(MethodCallExpression m)
-            {
-                if (m.Object != null)
-                {
-                    this.Visit(m.Object);
-                }
-                else if (m.Arguments.Count > 0)
-                {
-                    this.Visit(m.Arguments[0]);
-                }
-                return m;
-            }
+			public static MemberExpression Find(Expression query, ParameterExpression parameter)
+			{
+				var finder = new RootMemberFinder(parameter);
+				finder.Visit(query);
+				return finder.found;
+			}
 
-            protected override Expression VisitMemberAccess(MemberExpression m)
-            {
-                if (m.Expression == this.parameter)
-                {
-                    this.found = m;
-                    return m;
-                }
-                else
-                {
-                    return base.VisitMemberAccess(m);
-                }
-            }
-        }
+			protected override Expression VisitMethodCall(MethodCallExpression m)
+			{
+				if (m.Object != null)
+				{
+					this.Visit(m.Object);
+				}
+				else if (m.Arguments.Count > 0)
+				{
+					this.Visit(m.Arguments[0]);
+				}
+				return m;
+			}
+
+			protected override Expression VisitMemberAccess(MemberExpression m)
+			{
+				if (m.Expression == this.parameter)
+				{
+					this.found = m;
+					return m;
+				}
+				else
+				{
+					return base.VisitMemberAccess(m);
+				}
+			}
+		}
 
 		/// <summary>
 		/// Determines if a relationship property is to be included in the results of the query
 		/// </summary>
 		/// <param name="member"></param>
 		/// <returns></returns>
-        public bool IsIncluded(MemberInfo member)
-        {
-            return this.included.Contains(member);
-        }
+		public bool IsIncluded(MemberInfo member)
+		{
+			return this.included.Contains(member);
+		}
 
 		/// <summary>
 		/// Determines if a relationship property is included, but the query for the related data is 
@@ -181,15 +194,15 @@ namespace IQToolkit.Data
 		/// </summary>
 		/// <param name="member"></param>
 		/// <returns></returns>
-        public bool IsDeferLoaded(MemberInfo member)
-        {
-            return this.deferred.Contains(member);
-        }
+		public bool IsDeferLoaded(MemberInfo member)
+		{
+			return this.deferred.Contains(member);
+		}
 
-        public QueryPolice CreatePolice(QueryTranslator translator)
-        {
+		public QueryPolice CreatePolice(QueryTranslator translator)
+		{
 			return new QueryPolice(this, translator);
-        }
+		}
 
 		public class QueryPolice
 		{
@@ -278,5 +291,5 @@ namespace IQToolkit.Data
 				return ExecutionBuilder.Build(this.Policy, query, provider);
 			}
 		}
-    }
+	}
 }

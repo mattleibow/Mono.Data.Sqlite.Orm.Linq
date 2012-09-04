@@ -12,36 +12,36 @@ using System.Text;
 
 namespace IQToolkit.Data.Common
 {
-    /// <summary>
-    /// Defines query execution & materialization policies. 
-    /// </summary>
-    public class QueryTranslator
-    {
-	    public QueryTranslator(QueryMapping mapping, EntityPolicy policy)
-        {
-            this.Mapper = mapping.CreateMapper(this);
-            this.Police = policy.CreatePolice(this);
-        }
+	/// <summary>
+	/// Defines query execution & materialization policies. 
+	/// </summary>
+	public class QueryTranslator
+	{
+		public QueryTranslator(QueryMapping mapping, EntityPolicy policy)
+		{
+			this.Mapper = mapping.CreateMapper(this);
+			this.Police = policy.CreatePolice(this);
+		}
 
-	    public QueryMapper Mapper { get; private set; }
+		public QueryMapper Mapper { get; private set; }
 
-	    public EntityPolicy.QueryPolice Police { get; private set; }
+		public EntityPolicy.QueryPolice Police { get; private set; }
 
-	    public Expression Translate(Expression expression)
-        {
-            // pre-evaluate local sub-trees
-            expression = PartialEvaluator.Eval(expression, this.Mapper.Mapping.CanBeEvaluatedLocally);
+		public Expression Translate(Expression expression)
+		{
+			// pre-evaluate local sub-trees
+			expression = PartialEvaluator.Eval(expression, this.Mapper.Mapping.CanBeEvaluatedLocally);
 
-            // apply mapping (binds LINQ operators too)
-            expression = this.Mapper.Translate(expression);
+			// apply mapping (binds LINQ operators too)
+			expression = this.Mapper.Translate(expression);
 
-            // any policy specific translations or validations
-            expression = this.Police.Translate(expression);
+			// any policy specific translations or validations
+			expression = this.Police.Translate(expression);
 
-            // any language specific translations or validations
-		    expression = QueryLinguist.Translate(expression);
+			// any language specific translations or validations
+			expression = QueryLinguist.Translate(expression);
 
-            return expression;
-        }
-    }
+			return expression;
+		}
+	}
 }

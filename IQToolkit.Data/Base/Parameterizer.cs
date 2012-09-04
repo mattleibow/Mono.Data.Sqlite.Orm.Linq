@@ -7,49 +7,58 @@ using System.Threading;
 
 namespace IQToolkit
 {
-    /// <summary>
-    /// Converts constants into parameters
-    /// </summary>
-    public class Parameterizer : ExpressionVisitor
-    {
-        private readonly Func<Expression, bool> fnCanBeParameter;
-        private readonly List<ParameterExpression> parameters;
-        private readonly List<object> values;
+	/// <summary>
+	/// Converts constants into parameters
+	/// </summary>
+	public class Parameterizer : ExpressionVisitor
+	{
+		private readonly Func<Expression, bool> fnCanBeParameter;
 
-        private Parameterizer(Func<Expression, bool> fnCanBeParameter)
-        {
-            this.fnCanBeParameter = fnCanBeParameter;
-            this.parameters = new List<ParameterExpression>();
-            this.values = new List<object>();
-        }
+		private readonly List<ParameterExpression> parameters;
 
-        public static Expression Parameterize(Expression expression, Func<Expression, bool> fnCanBeParameter, out List<ParameterExpression> parameters, out List<object> values)
-        {
-            var p = new Parameterizer(fnCanBeParameter);
-            var result = p.Visit(expression);
-            parameters = p.parameters;
-            values = p.values;
-            return result;
-        }
+		private readonly List<object> values;
 
-        protected override Expression VisitConstant(ConstantExpression c)
-        {
-            bool isQueryRoot = c.Value is IQueryable;
+		private Parameterizer(Func<Expression, bool> fnCanBeParameter)
+		{
+			this.fnCanBeParameter = fnCanBeParameter;
+			this.parameters = new List<ParameterExpression>();
+			this.values = new List<object>();
+		}
 
-            if (!isQueryRoot && !this.fnCanBeParameter(c))
-                return c;
+		public static Expression Parameterize(
+			Expression expression,
+			Func<Expression, bool> fnCanBeParameter,
+			out List<ParameterExpression> parameters,
+			out List<object> values)
+		{
+			var p = new Parameterizer(fnCanBeParameter);
+			var result = p.Visit(expression);
+			parameters = p.parameters;
+			values = p.values;
+			return result;
+		}
 
-            var p = Expression.Parameter(c.Type, "p" + parameters.Count);
-            parameters.Add(p);
-            values.Add(c.Value);
+		protected override Expression VisitConstant(ConstantExpression c)
+		{
+			bool isQueryRoot = c.Value is IQueryable;
 
-            // If query root then parameterize it so we pass the value to the compiled query,
-            // but don't replace in the tree so it won't try to map this parameter to actual SQL.
-            if (isQueryRoot)
-                return c;
+			if (!isQueryRoot && !this.fnCanBeParameter(c))
+			{
+				return c;
+			}
 
-            return p;
-        }
-    }
+			var p = Expression.Parameter(c.Type, "p" + parameters.Count);
+			parameters.Add(p);
+			values.Add(c.Value);
+
+			// If query root then parameterize it so we pass the value to the compiled query,
+			// but don't replace in the tree so it won't try to map this parameter to actual SQL.
+			if (isQueryRoot)
+			{
+				return c;
+			}
+
+			return p;
+		}
+	}
 }
-

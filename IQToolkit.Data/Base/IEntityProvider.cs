@@ -11,23 +11,28 @@ using System.Reflection;
 
 namespace IQToolkit
 {
-    public interface IEntityProvider : IQueryProvider
-    {
-        IEntityTable<T> GetTable<T>(string tableId);
-        IEntityTable GetTable(Type type, string tableId);
-        bool CanBeEvaluatedLocally(Expression expression);
-        bool CanBeParameter(Expression expression);
-    }
+	public interface IEntityProvider : IQueryProvider
+	{
+		IEntityTable<T> GetTable<T>(string tableId);
 
-    public interface IEntityTable : IQueryable
-    {
-        new IEntityProvider Provider { get; }
-        string TableId { get; }
-        object GetById(object id);
-    }
+		IEntityTable GetTable(Type type, string tableId);
 
-    public interface IEntityTable<T> : IQueryable<T>, IEntityTable
-    {
-        new T GetById(object id);
-    }
+		bool CanBeEvaluatedLocally(Expression expression);
+
+		bool CanBeParameter(Expression expression);
+	}
+
+	public interface IEntityTable : IQueryable
+	{
+		new IEntityProvider Provider { get; }
+
+		string TableId { get; }
+
+		object GetById(object id);
+	}
+
+	public interface IEntityTable<T> : IQueryable<T>, IEntityTable
+	{
+		new T GetById(object id);
+	}
 }

@@ -13,38 +13,41 @@ using System.Text;
 
 namespace IQToolkit
 {
-    /// <summary>
-    /// Finds the first sub-expression that is of a specified type
-    /// </summary>
-    public class TypedSubtreeFinder : ExpressionVisitor
-    {
-        Expression root;
-        Type type;
+	/// <summary>
+	/// Finds the first sub-expression that is of a specified type
+	/// </summary>
+	public class TypedSubtreeFinder : ExpressionVisitor
+	{
+		private Expression root;
 
-        private TypedSubtreeFinder(Type type)
-        {
-            this.type = type;
-        }
+		private Type type;
 
-        public static Expression Find(Expression expression, Type type)
-        {
-            TypedSubtreeFinder finder = new TypedSubtreeFinder(type);
-            finder.Visit(expression);
-            return finder.root;
-        }
+		private TypedSubtreeFinder(Type type)
+		{
+			this.type = type;
+		}
 
-        protected override Expression Visit(Expression exp)
-        {
-            Expression result = base.Visit(exp);
+		public static Expression Find(Expression expression, Type type)
+		{
+			TypedSubtreeFinder finder = new TypedSubtreeFinder(type);
+			finder.Visit(expression);
+			return finder.root;
+		}
 
-            // remember the first sub-expression that produces an IQueryable
-            if (this.root == null && result != null)
-            {
-                if (this.type.IsAssignableFrom(result.Type))
-                    this.root = result;
-            }
+		protected override Expression Visit(Expression exp)
+		{
+			Expression result = base.Visit(exp);
 
-            return result;
-        }
-    }
+			// remember the first sub-expression that produces an IQueryable
+			if (this.root == null && result != null)
+			{
+				if (this.type.IsAssignableFrom(result.Type))
+				{
+					this.root = result;
+				}
+			}
+
+			return result;
+		}
+	}
 }

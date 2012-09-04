@@ -1252,9 +1252,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]  // no equivalent function
-#endif
         public void TestStringIndexOf()
         {
             var n = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => c.ContactName.IndexOf("ar"));
@@ -1262,9 +1260,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]  // no equivalent function
-#endif
         public void TestStringIndexOfChar()
         {
             var n = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => c.ContactName.IndexOf('r'));
@@ -1272,9 +1268,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]  // no equivalent function
-#endif
         public void TestStringIndexOfWithStart()
         {
             var n = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => c.ContactName.IndexOf("a", 3));
@@ -1291,10 +1285,8 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE || MYSQL
         [Ignore]  // SQLITE: no equivalent function
                   // MYSQL: returns datetime as binary after combination of MAX and CONVERT
-#endif
         public void TestDateTimeConstructYMD()
         {
             var dt = db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => new DateTime((c.CustomerID == "ALFKI") ? 1997 : 1997, 7, 4));
@@ -1307,10 +1299,8 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE || MYSQL
         [Ignore]  // SQLITE: no equivalent function
                   // MYSQL: returns datetime as binary after combination of MAX and CONVERT
-#endif
         public void TestDateTimeConstructYMDHMS()
         {
             var dt = db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => new DateTime((c.CustomerID == "ALFKI") ? 1997 : 1997, 7, 4, 3, 5, 6));
@@ -1344,9 +1334,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]   // not able to test via construction
-#endif
         public void TestDateTimeHour()
         {
             var hour = db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => new DateTime((c.CustomerID == "ALFKI") ? 1997 : 1997, 7, 4, 3, 5, 6).Hour);
@@ -1354,9 +1342,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]   // not able to test via construction
-#endif
         public void TestDateTimeMinute()
         {
             var minute = db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => new DateTime((c.CustomerID == "ALFKI") ? 1997 : 1997, 7, 4, 3, 5, 6).Minute);
@@ -1364,9 +1350,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]   // not able to test via construction
-#endif
         public void TestDateTimeSecond()
         {
             var second = db.Customers.Where(c => c.CustomerID == "ALFKI").Max(c => new DateTime((c.CustomerID == "ALFKI") ? 1997 : 1997, 7, 4, 3, 5, 6).Second);
@@ -1381,9 +1365,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDateTimeAddYears()
         {
             var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddYears(2).Year == 1999);
@@ -1391,9 +1373,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDateTimeAddMonths()
         {
             var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddMonths(2).Month == 10);
@@ -1401,9 +1381,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDateTimeAddDays()
         {
             var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddDays(2).Day == 27);
@@ -1411,9 +1389,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDateTimeAddHours()
         {
             var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddHours(3).Hour == 3);
@@ -1421,9 +1397,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDateTimeAddMinutes()
         {
             var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddMinutes(5).Minute == 5);
@@ -1431,9 +1405,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDateTimeAddSeconds()
         {
             var od = db.Orders.FirstOrDefault(o => o.OrderDate == new DateTime(1997, 8, 25) && o.OrderDate.AddSeconds(6).Second == 6);
@@ -1542,9 +1514,7 @@ namespace Test
         }
 
         [TestMethod]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestMathFloor()
         {
             // The difference between floor and truncate is how negatives are handled.  Floor drops the decimals and moves the
@@ -1558,9 +1528,7 @@ namespace Test
         }
 
         [TestMethod]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestDecimalFloor()
         {
             var four = db.Customers.Where(c => c.CustomerID == "ALFKI").Sum(c => decimal.Floor((c.CustomerID == "ALFKI" ? 3.4m : 3.4m)));
@@ -1572,9 +1540,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestMathTruncate()
         {
             // The difference between floor and truncate is how negatives are handled.  Truncate drops the decimals, 
@@ -1803,9 +1769,7 @@ namespace Test
         }
 
         [TestMethod]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDecimalTruncate()
         {
             // The difference between floor and truncate is how negatives are handled.  Truncate drops the decimals, 

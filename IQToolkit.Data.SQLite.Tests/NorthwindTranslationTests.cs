@@ -1266,9 +1266,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if SQLITE
         [Ignore]
-#endif
         public void TestStringIndexOf()
         {
             TestQuery(db.Customers.Where(c => c.City.IndexOf("tt") == 4));
@@ -1276,9 +1274,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if SQLITE
         [Ignore]
-#endif
         public void TestStringIndexOfChar()
         {
             TestQuery(db.Customers.Where(c => c.City.IndexOf('t') == 4));
@@ -1494,9 +1490,6 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLCE
-        [Ignore]
-#endif
         public void TestMathAcos()
         {
             TestQuery(db.Orders.Where(o => Math.Acos(1.0/o.OrderID) == 0));
@@ -1504,9 +1497,6 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLCE
-        [Ignore]
-#endif
         public void TestMathAsin()
         {
             TestQuery(db.Orders.Where(o => Math.Asin(1.0/o.OrderID) == 0));
@@ -1514,9 +1504,6 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS
-        [Ignore]
-#endif
         public void TestMathAtan2()
         {
             TestQuery(db.Orders.Where(o => Math.Atan2(1.0/o.OrderID, 3) == 0));
@@ -1524,9 +1511,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestMathLog10()
         {
             TestQuery(db.Orders.Where(o => Math.Log10(o.OrderID) == 0));
@@ -1534,9 +1519,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestMathCeiling()
         {
             TestQuery(db.Orders.Where(o => Math.Ceiling((double)o.OrderID) == 0));
@@ -1544,9 +1527,6 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS
-        [Ignore]
-#endif
         public void TestMathRoundToPlace()
         {
             TestQuery(db.Orders.Where(o => Math.Round((decimal)o.OrderID, 2) == 0));
@@ -1554,9 +1534,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestMathFloor()
         {
             TestQuery(db.Orders.Where(o => Math.Floor((double)o.OrderID) == 0));
@@ -1564,9 +1542,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if SQLITE
         [Ignore]
-#endif
         public void TestMathTruncate()
         {
             TestQuery(db.Orders.Where(o => Math.Truncate((double)o.OrderID) == 0));
@@ -1702,9 +1678,6 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if SQLCE
-        [Ignore]
-#endif
         public void TestDecimalRemainder()
         {
             TestQuery(db.Orders.Where(o => decimal.Remainder(o.OrderID, 1.0m) == 0.0m));
@@ -1726,9 +1699,6 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS
-        [Ignore]
-#endif
         public void TestDecimalRoundPlaces()
         {
             TestQuery(db.Orders.Where(o => decimal.Round(o.OrderID, 2) == 0.00m));
@@ -1736,9 +1706,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if SQLITE
         [Ignore]
-#endif
         public void TestDecimalTruncate()
         {
             TestQuery(db.Orders.Where(o => decimal.Truncate(o.OrderID) == 0m));
@@ -1746,9 +1714,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestDecimalCeiling()
         {
             TestQuery(db.Orders.Where(o => decimal.Ceiling(o.OrderID) == 0.0m));
@@ -1756,9 +1722,7 @@ namespace Test
 
         [TestMethod]
         [TestCategory("Translation")]
-#if ACCESS || SQLITE
         [Ignore]
-#endif
         public void TestDecimalFloor()
         {
             TestQuery(db.Orders.Where(o => decimal.Floor(o.OrderID) == 0.0m));
@@ -2145,19 +2109,6 @@ namespace Test
         private static IQueryable<T> GetById<T>(IQueryable<T> query, int id) where T : IEntity
         {
             return query.Where(x => x.ID == id);
-        }
-
-        [TestMethod]
-        [TestCategory("Translation")]
-        public void TestXmlMappingSelectCustomers()
-        {
-            var nw = new Northwind(_provider.New(XmlMapping.FromXml(File.ReadAllText(@"Northwind.xml"))));
-
-            TestQuery(
-                from c in db.Customers
-                where c.City == "London"
-                select c.ContactName
-                );
         }
 
         [TestMethod]

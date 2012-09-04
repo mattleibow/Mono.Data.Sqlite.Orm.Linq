@@ -7,225 +7,252 @@ using System.Collections.Generic;
 
 namespace IQToolkit
 {
-    /// <summary>
-    /// Common interface for controlling defer-loadable types
-    /// </summary>
-    public interface IDeferLoadable
-    {
-        bool IsLoaded { get; }
-        void Load();
-    }
+	/// <summary>
+	/// Common interface for controlling defer-loadable types
+	/// </summary>
+	public interface IDeferLoadable
+	{
+		bool IsLoaded { get; }
 
-    public interface IDeferredList : IList, IDeferLoadable
-    {
-    }
+		void Load();
+	}
 
-    public interface IDeferredList<T> : IList<T>, IDeferredList
-    {
-    }
+	public interface IDeferredList : IList, IDeferLoadable
+	{
+	}
 
-    /// <summary>
-    /// A list implementation that is loaded the first time the contents are examined
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class DeferredList<T> : IDeferredList<T>, ICollection<T>, IEnumerable<T>, IList, ICollection, IEnumerable, IDeferLoadable
-    {
-        IEnumerable<T> source;
-        List<T> values;
+	public interface IDeferredList<T> : IList<T>, IDeferredList
+	{
+	}
 
-        public DeferredList(IEnumerable<T> source)
-        {
-            this.source = source;
-        }
+	/// <summary>
+	/// A list implementation that is loaded the first time the contents are examined
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	public class DeferredList<T> : IDeferredList<T>,
+	                               ICollection<T>,
+	                               IEnumerable<T>,
+	                               IList,
+	                               ICollection,
+	                               IEnumerable,
+	                               IDeferLoadable
+	{
+		private IEnumerable<T> source;
 
-        public void Load()
-        {
-            this.values = new List<T>(this.source);
-        }
+		private List<T> values;
 
-        public bool IsLoaded
-        {
-            get { return this.values != null; }
-        }
+		public DeferredList(IEnumerable<T> source)
+		{
+			this.source = source;
+		}
 
-        private void Check()
-        {
-            if (!this.IsLoaded)
-            {
-                this.Load();
-            }
-        }
+		public void Load()
+		{
+			this.values = new List<T>(this.source);
+		}
 
-        #region IList<T> Members
+		public bool IsLoaded
+		{
+			get
+			{
+				return this.values != null;
+			}
+		}
 
-        public int IndexOf(T item)
-        {
-            this.Check();
-            return this.values.IndexOf(item);
-        }
+		private void Check()
+		{
+			if (!this.IsLoaded)
+			{
+				this.Load();
+			}
+		}
 
-        public void Insert(int index, T item)
-        {
-            this.Check();
-            this.values.Insert(index, item);
-        }
+		#region IList<T> Members
 
-        public void RemoveAt(int index)
-        {
-            this.Check();
-            this.values.RemoveAt(index);
-        }
+		public int IndexOf(T item)
+		{
+			this.Check();
+			return this.values.IndexOf(item);
+		}
 
-        public T this[int index]
-        {
-            get
-            {
-                this.Check();
-                return this.values[index];
-            }
-            set
-            {
-                this.Check();
-                this.values[index] = value;
-            }
-        }
+		public void Insert(int index, T item)
+		{
+			this.Check();
+			this.values.Insert(index, item);
+		}
 
-        #endregion
+		public void RemoveAt(int index)
+		{
+			this.Check();
+			this.values.RemoveAt(index);
+		}
 
-        #region ICollection<T> Members
+		public T this[int index]
+		{
+			get
+			{
+				this.Check();
+				return this.values[index];
+			}
+			set
+			{
+				this.Check();
+				this.values[index] = value;
+			}
+		}
 
-        public void Add(T item)
-        {
-            this.Check();
-            this.values.Add(item);
-        }
+		#endregion
 
-        public void Clear()
-        {
-            this.Check();
-            this.values.Clear();
-        }
+		#region ICollection<T> Members
 
-        public bool Contains(T item)
-        {
-            this.Check();
-            return this.values.Contains(item);
-        }
+		public void Add(T item)
+		{
+			this.Check();
+			this.values.Add(item);
+		}
 
-        public void CopyTo(T[] array, int arrayIndex)
-        {
-            this.Check();
-            this.values.CopyTo(array, arrayIndex);
-        }
+		public void Clear()
+		{
+			this.Check();
+			this.values.Clear();
+		}
 
-        public int Count
-        {
-            get { this.Check(); return this.values.Count; }
-        }
+		public bool Contains(T item)
+		{
+			this.Check();
+			return this.values.Contains(item);
+		}
 
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+		public void CopyTo(T[] array, int arrayIndex)
+		{
+			this.Check();
+			this.values.CopyTo(array, arrayIndex);
+		}
 
-        public bool Remove(T item)
-        {
-            this.Check();
-            return this.values.Remove(item);
-        }
+		public int Count
+		{
+			get
+			{
+				this.Check();
+				return this.values.Count;
+			}
+		}
 
-        #endregion
+		public bool IsReadOnly
+		{
+			get
+			{
+				return false;
+			}
+		}
 
-        #region IEnumerable<T> Members
+		public bool Remove(T item)
+		{
+			this.Check();
+			return this.values.Remove(item);
+		}
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            this.Check();
-            return this.values.GetEnumerator();
-        }
+		#endregion
 
-        #endregion
+		#region IEnumerable<T> Members
 
-        #region IEnumerable Members
+		public IEnumerator<T> GetEnumerator()
+		{
+			this.Check();
+			return this.values.GetEnumerator();
+		}
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+		#endregion
 
-        #endregion
+		#region IEnumerable Members
 
-        #region IList Members
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return this.GetEnumerator();
+		}
 
-        public int Add(object value)
-        {
-            this.Check();
-            return ((IList)this.values).Add(value);
-        }
+		#endregion
 
-        public bool Contains(object value)
-        {
-            this.Check();
-            return ((IList)this.values).Contains(value);
-        }
+		#region IList Members
 
-        public int IndexOf(object value)
-        {
-            this.Check();
-            return ((IList)this.values).IndexOf(value);
-        }
+		public int Add(object value)
+		{
+			this.Check();
+			return ((IList)this.values).Add(value);
+		}
 
-        public void Insert(int index, object value)
-        {
-            this.Check();
-            ((IList)this.values).Insert(index, value);
-        }
+		public bool Contains(object value)
+		{
+			this.Check();
+			return ((IList)this.values).Contains(value);
+		}
 
-        public bool IsFixedSize
-        {
-            get { return false; }
-        }
+		public int IndexOf(object value)
+		{
+			this.Check();
+			return ((IList)this.values).IndexOf(value);
+		}
 
-        public void Remove(object value)
-        {
-            this.Check();
-            ((IList)this.values).Remove(value);
-        }
+		public void Insert(int index, object value)
+		{
+			this.Check();
+			((IList)this.values).Insert(index, value);
+		}
 
-        object IList.this[int index]
-        {
-            get
-            {
-                this.Check();
-                return ((IList)this.values)[index];
-            }
-            set
-            {
-                this.Check();
-                ((IList)this.values)[index] = value;
-            }
-        }
+		public bool IsFixedSize
+		{
+			get
+			{
+				return false;
+			}
+		}
 
-        #endregion
+		public void Remove(object value)
+		{
+			this.Check();
+			((IList)this.values).Remove(value);
+		}
 
-        #region ICollection Members
+		object IList.this[int index]
+		{
+			get
+			{
+				this.Check();
+				return ((IList)this.values)[index];
+			}
+			set
+			{
+				this.Check();
+				((IList)this.values)[index] = value;
+			}
+		}
 
-        public void CopyTo(Array array, int index)
-        {
-            this.Check();
-            ((IList)this.values).CopyTo(array, index);
-        }
+		#endregion
 
-        public bool IsSynchronized
-        {
-            get { return false; }
-        }
+		#region ICollection Members
 
-        public object SyncRoot
-        {
-            get { return null; }
-        }
+		public void CopyTo(Array array, int index)
+		{
+			this.Check();
+			((IList)this.values).CopyTo(array, index);
+		}
 
-        #endregion
-    }
+		public bool IsSynchronized
+		{
+			get
+			{
+				return false;
+			}
+		}
+
+		public object SyncRoot
+		{
+			get
+			{
+				return null;
+			}
+		}
+
+		#endregion
+	}
 }

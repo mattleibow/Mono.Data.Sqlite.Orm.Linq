@@ -8,67 +8,75 @@ using System.Linq;
 
 namespace IQToolkit
 {
-    public struct DeferredValue<T> : IDeferLoadable
-    {
-        IEnumerable<T> source;
-        bool loaded;
-        T value;
+	public struct DeferredValue<T> : IDeferLoadable
+	{
+		private IEnumerable<T> source;
 
-        public DeferredValue(T value)
-        {
-            this.value = value;
-            this.source = null;
-            this.loaded = true;
-        }
+		private bool loaded;
 
-        public DeferredValue(IEnumerable<T> source)
-        {
-            this.source = source;
-            this.loaded = false;
-            this.value = default(T);
-        }
+		private T value;
 
-        public void Load()
-        {
-            if (this.source != null)
-            {
-                this.value = this.source.SingleOrDefault();
-                this.loaded = true;
-            }
-        }
+		public DeferredValue(T value)
+		{
+			this.value = value;
+			this.source = null;
+			this.loaded = true;
+		}
 
-        public bool IsLoaded
-        {
-            get { return this.loaded; }
-        }
+		public DeferredValue(IEnumerable<T> source)
+		{
+			this.source = source;
+			this.loaded = false;
+			this.value = default(T);
+		}
 
-        public bool IsAssigned
-        {
-            get { return this.loaded && this.source == null; }
-        }
+		public void Load()
+		{
+			if (this.source != null)
+			{
+				this.value = this.source.SingleOrDefault();
+				this.loaded = true;
+			}
+		}
 
-        private void Check()
-        {
-            if (!this.IsLoaded)
-            {
-                this.Load();
-            }
-        }
+		public bool IsLoaded
+		{
+			get
+			{
+				return this.loaded;
+			}
+		}
 
-        public T Value
-        {
-            get
-            {
-                this.Check();
-                return this.value;
-            }
+		public bool IsAssigned
+		{
+			get
+			{
+				return this.loaded && this.source == null;
+			}
+		}
 
-            set
-            {
-                this.value = value;
-                this.loaded = true;
-                this.source = null;
-            }
-        }
-    }
+		private void Check()
+		{
+			if (!this.IsLoaded)
+			{
+				this.Load();
+			}
+		}
+
+		public T Value
+		{
+			get
+			{
+				this.Check();
+				return this.value;
+			}
+
+			set
+			{
+				this.value = value;
+				this.loaded = true;
+				this.source = null;
+			}
+		}
+	}
 }

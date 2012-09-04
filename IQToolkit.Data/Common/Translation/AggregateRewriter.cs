@@ -9,73 +9,85 @@ using System.Linq.Expressions;
 
 namespace IQToolkit.Data.Common
 {
-    /// <summary>
-    /// Rewrite aggregate expressions, moving them into same select expression that has the group-by clause
-    /// </summary>
-    public class AggregateRewriter : DbExpressionVisitor
-    {
-        ILookup<TableAlias, AggregateSubqueryExpression> lookup;
-        Dictionary<AggregateSubqueryExpression, Expression> map;
+	/// <summary>
+	/// Rewrite aggregate expressions, moving them into same select expression that has the group-by clause
+	/// </summary>
+	public class AggregateRewriter : DbExpressionVisitor
+	{
+		private ILookup<TableAlias, AggregateSubqueryExpression> lookup;
 
-        private AggregateRewriter(Expression expr)
-        {
-            this.map = new Dictionary<AggregateSubqueryExpression, Expression>();
-            this.lookup = AggregateGatherer.Gather(expr).ToLookup(a => a.GroupByAlias);
-        }
+		private Dictionary<AggregateSubqueryExpression, Expression> map;
 
-        public static Expression Rewrite(Expression expr)
-        {
-            return new AggregateRewriter(expr).Visit(expr);
-        }
+		private AggregateRewriter(Expression expr)
+		{
+			this.map = new Dictionary<AggregateSubqueryExpression, Expression>();
+			this.lookup = AggregateGatherer.Gather(expr).ToLookup(a => a.GroupByAlias);
+		}
 
-        protected override Expression VisitSelect(SelectExpression select)
-        {
-            select = (SelectExpression)base.VisitSelect(select);
-            if (lookup.Contains(select.Alias))
-            {
-                List<ColumnDeclaration> aggColumns = new List<ColumnDeclaration>(select.Columns);
-                foreach (AggregateSubqueryExpression ae in lookup[select.Alias])
-                {
-                    string name = "agg" + aggColumns.Count;
-                    var colType = DbTypeSystem.GetColumnType(ae.Type);
-                    ColumnDeclaration cd = new ColumnDeclaration(name, ae.AggregateInGroupSelect, colType);
-                    this.map.Add(ae, new ColumnExpression(ae.Type, colType, ae.GroupByAlias, name));
-                    aggColumns.Add(cd);
-                }
-                return new SelectExpression(select.Alias, aggColumns, select.From, select.Where, select.OrderBy, select.GroupBy, select.IsDistinct, select.Skip, select.Take, select.IsReverse);
-            }
-            return select;
-        }
+		public static Expression Rewrite(Expression expr)
+		{
+			return new AggregateRewriter(expr).Visit(expr);
+		}
 
-        protected override Expression VisitAggregateSubquery(AggregateSubqueryExpression aggregate)
-        {
-            Expression mapped;
-            if (this.map.TryGetValue(aggregate, out mapped))
-            {
-                return mapped;
-            }
-            return this.Visit(aggregate.AggregateAsSubquery);
-        }
+		protected override Expression VisitSelect(SelectExpression select)
+		{
+			select = (SelectExpression)base.VisitSelect(select);
+			if (lookup.Contains(select.Alias))
+			{
+				List<ColumnDeclaration> aggColumns = new List<ColumnDeclaration>(select.Columns);
+				foreach (AggregateSubqueryExpression ae in lookup[select.Alias])
+				{
+					string name = "agg" + aggColumns.Count;
+					var colType = DbTypeSystem.GetColumnType(ae.Type);
+					ColumnDeclaration cd = new ColumnDeclaration(name, ae.AggregateInGroupSelect, colType);
+					this.map.Add(ae, new ColumnExpression(ae.Type, colType, ae.GroupByAlias, name));
+					aggColumns.Add(cd);
+				}
+				return new SelectExpression(
+					select.Alias,
+					aggColumns,
+					select.From,
+					select.Where,
+					select.OrderBy,
+					select.GroupBy,
+					select.IsDistinct,
+					select.Skip,
+					select.Take,
+					select.IsReverse);
+			}
+			return select;
+		}
 
-        class AggregateGatherer : DbExpressionVisitor
-        {
-            List<AggregateSubqueryExpression> aggregates = new List<AggregateSubqueryExpression>();
-            private AggregateGatherer()
-            {
-            }
+		protected override Expression VisitAggregateSubquery(AggregateSubqueryExpression aggregate)
+		{
+			Expression mapped;
+			if (this.map.TryGetValue(aggregate, out mapped))
+			{
+				return mapped;
+			}
+			return this.Visit(aggregate.AggregateAsSubquery);
+		}
 
-            internal static List<AggregateSubqueryExpression> Gather(Expression expression)
-            {
-                AggregateGatherer gatherer = new AggregateGatherer();
-                gatherer.Visit(expression);
-                return gatherer.aggregates;
-            }
+		private class AggregateGatherer : DbExpressionVisitor
+		{
+			private List<AggregateSubqueryExpression> aggregates = new List<AggregateSubqueryExpression>();
 
-            protected override Expression VisitAggregateSubquery(AggregateSubqueryExpression aggregate)
-            {
-                this.aggregates.Add(aggregate);
-                return base.VisitAggregateSubquery(aggregate);
-            }
-        }
-    }
+			private AggregateGatherer()
+			{
+			}
+
+			internal static List<AggregateSubqueryExpression> Gather(Expression expression)
+			{
+				AggregateGatherer gatherer = new AggregateGatherer();
+				gatherer.Visit(expression);
+				return gatherer.aggregates;
+			}
+
+			protected override Expression VisitAggregateSubquery(AggregateSubqueryExpression aggregate)
+			{
+				this.aggregates.Add(aggregate);
+				return base.VisitAggregateSubquery(aggregate);
+			}
+		}
+	}
 }

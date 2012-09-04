@@ -12,37 +12,38 @@ using System.Text;
 
 namespace IQToolkit.Data.Common
 {
-    /// <summary>
-    /// Rewrite all column references to one or more aliases to a new single alias
-    /// </summary>
-    public class ColumnMapper : DbExpressionVisitor
-    {
-        HashSet<TableAlias> oldAliases;
-        TableAlias newAlias;
+	/// <summary>
+	/// Rewrite all column references to one or more aliases to a new single alias
+	/// </summary>
+	public class ColumnMapper : DbExpressionVisitor
+	{
+		private HashSet<TableAlias> oldAliases;
 
-        private ColumnMapper(IEnumerable<TableAlias> oldAliases, TableAlias newAlias)
-        {
-            this.oldAliases = new HashSet<TableAlias>(oldAliases);
-            this.newAlias = newAlias;
-        }
+		private TableAlias newAlias;
 
-        public static Expression Map(Expression expression, TableAlias newAlias, IEnumerable<TableAlias> oldAliases)
-        {
-            return new ColumnMapper(oldAliases, newAlias).Visit(expression);
-        }
+		private ColumnMapper(IEnumerable<TableAlias> oldAliases, TableAlias newAlias)
+		{
+			this.oldAliases = new HashSet<TableAlias>(oldAliases);
+			this.newAlias = newAlias;
+		}
 
-        public static Expression Map(Expression expression, TableAlias newAlias, params TableAlias[] oldAliases)
-        {
-            return Map(expression, newAlias, (IEnumerable<TableAlias>)oldAliases);
-        }
+		public static Expression Map(Expression expression, TableAlias newAlias, IEnumerable<TableAlias> oldAliases)
+		{
+			return new ColumnMapper(oldAliases, newAlias).Visit(expression);
+		}
 
-        protected override Expression VisitColumn(ColumnExpression column)
-        {
-            if (this.oldAliases.Contains(column.Alias))
-            {
-                return new ColumnExpression(column.Type, column.QueryType, this.newAlias, column.Name);
-            }
-            return column;
-        }
-    }
+		public static Expression Map(Expression expression, TableAlias newAlias, params TableAlias[] oldAliases)
+		{
+			return Map(expression, newAlias, (IEnumerable<TableAlias>)oldAliases);
+		}
+
+		protected override Expression VisitColumn(ColumnExpression column)
+		{
+			if (this.oldAliases.Contains(column.Alias))
+			{
+				return new ColumnExpression(column.Type, column.QueryType, this.newAlias, column.Name);
+			}
+			return column;
+		}
+	}
 }

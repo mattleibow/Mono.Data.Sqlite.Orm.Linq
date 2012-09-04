@@ -9,35 +9,36 @@ using System.Linq.Expressions;
 
 namespace IQToolkit.Data.Common
 {
-    /// <summary>
-    /// Gathers all columns referenced by the given expression
-    /// </summary>
-    public class ReferencedColumnGatherer : DbExpressionVisitor
-    {
-        HashSet<ColumnExpression> columns = new HashSet<ColumnExpression>();
-        bool first = true;
+	/// <summary>
+	/// Gathers all columns referenced by the given expression
+	/// </summary>
+	public class ReferencedColumnGatherer : DbExpressionVisitor
+	{
+		private HashSet<ColumnExpression> columns = new HashSet<ColumnExpression>();
 
-        public static HashSet<ColumnExpression> Gather(Expression expression)
-        {
-            var visitor = new ReferencedColumnGatherer();
-            visitor.Visit(expression);
-            return visitor.columns;
-        }
+		private bool first = true;
 
-        protected override Expression VisitColumn(ColumnExpression column)
-        {
-            this.columns.Add(column);
-            return column;
-        }
+		public static HashSet<ColumnExpression> Gather(Expression expression)
+		{
+			var visitor = new ReferencedColumnGatherer();
+			visitor.Visit(expression);
+			return visitor.columns;
+		}
 
-        protected override Expression VisitSelect(SelectExpression select)
-        {
-            if (first)
-            {
-                first = false;
-                return base.VisitSelect(select);
-            }
-            return select;
-        }
-    }
+		protected override Expression VisitColumn(ColumnExpression column)
+		{
+			this.columns.Add(column);
+			return column;
+		}
+
+		protected override Expression VisitSelect(SelectExpression select)
+		{
+			if (first)
+			{
+				first = false;
+				return base.VisitSelect(select);
+			}
+			return select;
+		}
+	}
 }

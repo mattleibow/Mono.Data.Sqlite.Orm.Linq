@@ -7,54 +7,59 @@ using System.Collections.Generic;
 
 namespace IQToolkit
 {
-    public class CompoundKey : IEquatable<CompoundKey>, IEnumerable<object>, IEnumerable
-    {
-        object[] values;
-        int hc;
+	public class CompoundKey : IEquatable<CompoundKey>, IEnumerable<object>, IEnumerable
+	{
+		private object[] values;
 
-        public CompoundKey(params object[] values)
-        {
-            this.values = values;
-            for (int i = 0, n = values.Length; i < n; i++)
-            {
-                object value = values[i];
-                if (value != null)
-                {
-                    hc ^= (value.GetHashCode() + i);
-                }
-            }
-        }
+		private int hc;
 
-        public override int GetHashCode()
-        {
-            return hc;
-        }
+		public CompoundKey(params object[] values)
+		{
+			this.values = values;
+			for (int i = 0, n = values.Length; i < n; i++)
+			{
+				object value = values[i];
+				if (value != null)
+				{
+					hc ^= (value.GetHashCode() + i);
+				}
+			}
+		}
 
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
+		public override int GetHashCode()
+		{
+			return hc;
+		}
 
-        public bool Equals(CompoundKey other)
-        {
-            if (other == null || other.values.Length != values.Length)
-                return false;
-            for (int i = 0, n = other.values.Length; i < n; i++)
-            {
-                if (!object.Equals(this.values[i], other.values[i]))
-                    return false;
-            }
-            return true;
-        }
+		public override bool Equals(object obj)
+		{
+			return base.Equals(obj);
+		}
 
-        public IEnumerator<object> GetEnumerator()
-        {
-            return ((IEnumerable<object>)values).GetEnumerator();
-        }
+		public bool Equals(CompoundKey other)
+		{
+			if (other == null || other.values.Length != values.Length)
+			{
+				return false;
+			}
+			for (int i = 0, n = other.values.Length; i < n; i++)
+			{
+				if (!object.Equals(this.values[i], other.values[i]))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-    }
+		public IEnumerator<object> GetEnumerator()
+		{
+			return ((IEnumerable<object>)values).GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return this.GetEnumerator();
+		}
+	}
 }

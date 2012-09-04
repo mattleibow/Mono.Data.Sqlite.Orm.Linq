@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace IQToolkit
 {
-    public interface IAsyncQueryProvider : IQueryProvider
-    {
-        Task<object> ExecuteAsync(Expression query);
-        Task<TResult> ExecuteAsync<TResult>(Expression query);
-    }
+	public interface IAsyncQueryProvider : IQueryProvider
+	{
+		Task<object> ExecuteAsync(Expression query);
+
+		Task<TResult> ExecuteAsync<TResult>(Expression query);
+	}
 }

@@ -13,18 +13,22 @@ using System.Text;
 using System.Data;
 using System.Data.Common;
 using System.Threading.Tasks;
+
 using Mono.Data.Sqlite;
+
 using IQToolkit.Data.Common;
 using IQToolkit.Data.Mapping;
 
 namespace IQToolkit.Data
 {
+	using System.Globalization;
+
 	/// <summary>
-    /// A LINQ IQueryable query provider that executes database queries over a DbConnection
-    /// </summary>
+	/// A LINQ IQueryable query provider that executes database queries over a SqliteConnection
+	/// </summary>
 	public class EntityProvider : IAsyncQueryProvider, IEntityProvider, IQueryProvider
 	{
-		public EntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
+		public EntityProvider New(SqliteConnection connection, QueryMapping mapping, EntityPolicy policy)
 		{
 			return new EntityProvider(connection, mapping, policy);
 		}
@@ -68,7 +72,8 @@ namespace IQToolkit.Data
 			return From(typeof(EntityProvider), connectionString, mapping, policy);
 		}
 
-		public static EntityProvider From(Type providerType, string connectionString, QueryMapping mapping, EntityPolicy policy)
+		public static EntityProvider From(
+			Type providerType, string connectionString, QueryMapping mapping, EntityPolicy policy)
 		{
 			SqliteConnection connection = new SqliteConnection();
 
@@ -82,7 +87,8 @@ namespace IQToolkit.Data
 
 			return (EntityProvider)Activator.CreateInstance(providerType, new object[] { connection, mapping, policy });
 		}
-	    EntityPolicy policy;
+
+		private EntityPolicy policy;
 
 		IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
 		{
@@ -94,7 +100,9 @@ namespace IQToolkit.Data
 			Type elementType = TypeHelper.GetElementType(expression.Type);
 			try
 			{
-				return (IQueryable)Activator.CreateInstance(typeof(Query<>).MakeGenericType(elementType), new object[] { this, expression });
+				return
+					(IQueryable)
+					Activator.CreateInstance(typeof(Query<>).MakeGenericType(elementType), new object[] { this, expression });
 			}
 			catch (TargetInvocationException tie)
 			{
@@ -111,7 +119,7 @@ namespace IQToolkit.Data
 		{
 			return this.Execute(expression);
 		}
-		
+
 		public virtual Task<object> ExecuteAsync(Expression expression)
 		{
 			return Task.Run(() => this.Execute(expression));
@@ -122,189 +130,218 @@ namespace IQToolkit.Data
 			return Task.Run<S>(() => (S)this.Execute(expression));
 		}
 
-	    QueryCache cache;
-        private readonly Dictionary<MappingEntity, IEntityTable> tables;
+		private QueryCache cache;
 
-		public EntityProvider(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
-        {
-            if (mapping == null)
-                throw new InvalidOperationException("Mapping not specified");
-            if (policy == null)
-                throw new InvalidOperationException("Policy not specified");
-            this.Mapping = mapping;
-            this.policy = policy;
-            this.tables = new Dictionary<MappingEntity, IEntityTable>();
-	        ActionOpenedConnection = false;
-	        if (connection == null)
-                throw new InvalidOperationException("Connection not specified");
-            this.connection = connection;
-        }
+		private readonly Dictionary<MappingEntity, IEntityTable> tables;
 
-	    public QueryMapping Mapping { get; private set; }
+		public EntityProvider(SqliteConnection connection, QueryMapping mapping, EntityPolicy policy)
+		{
+			if (mapping == null)
+			{
+				throw new InvalidOperationException("Mapping not specified");
+			}
+			if (policy == null)
+			{
+				throw new InvalidOperationException("Policy not specified");
+			}
+			this.Mapping = mapping;
+			this.policy = policy;
+			this.tables = new Dictionary<MappingEntity, IEntityTable>();
+			ActionOpenedConnection = false;
+			if (connection == null)
+			{
+				throw new InvalidOperationException("Connection not specified");
+			}
+			this.connection = connection;
+		}
 
-	    public EntityPolicy Policy
-        {
-            get { return this.policy; }
-            set { this.policy = value ?? EntityPolicy.Default; }
-        }
+		public QueryMapping Mapping { get; private set; }
 
-	    public TextWriter Log { get; set; }
+		public EntityPolicy Policy
+		{
+			get
+			{
+				return this.policy;
+			}
+			set
+			{
+				this.policy = value ?? EntityPolicy.Default;
+			}
+		}
 
-	    public IEntityTable GetTable(MappingEntity entity)
-        {
-            IEntityTable table;
-            if (!this.tables.TryGetValue(entity, out table))
-            {
-                table = this.CreateTable(entity);
-                this.tables.Add(entity, table);
-            }
-            return table;
-        }
+		public TextWriter Log { get; set; }
+
+		public IEntityTable GetTable(MappingEntity entity)
+		{
+			IEntityTable table;
+			if (!this.tables.TryGetValue(entity, out table))
+			{
+				table = this.CreateTable(entity);
+				this.tables.Add(entity, table);
+			}
+			return table;
+		}
 
 		private IEntityTable CreateTable(MappingEntity entity)
-        {
-            return (IEntityTable) Activator.CreateInstance(
-                typeof(EntityTable<>).MakeGenericType(entity.ElementType), 
-                new object[] { this, entity }
-                );
-        }
+		{
+			return
+				(IEntityTable)
+				Activator.CreateInstance(typeof(EntityTable<>).MakeGenericType(entity.ElementType), new object[] { this, entity });
+		}
 
-        public IEntityTable<T> GetTable<T>()
-        {
-            return GetTable<T>(null);
-        }
+		public IEntityTable<T> GetTable<T>()
+		{
+			return GetTable<T>(null);
+		}
 
-        public IEntityTable<T> GetTable<T>(string tableId)
-        {
-            return (IEntityTable<T>)this.GetTable(typeof(T), tableId);
-        }
+		public IEntityTable<T> GetTable<T>(string tableId)
+		{
+			return (IEntityTable<T>)this.GetTable(typeof(T), tableId);
+		}
 
-        public IEntityTable GetTable(Type type)
-        {
-            return GetTable(type, null);
-        }
+		public IEntityTable GetTable(Type type)
+		{
+			return GetTable(type, null);
+		}
 
-        public IEntityTable GetTable(Type type, string tableId)
-        {
-            return this.GetTable(this.Mapping.GetEntity(type, tableId));
-        }
+		public IEntityTable GetTable(Type type, string tableId)
+		{
+			return this.GetTable(this.Mapping.GetEntity(type, tableId));
+		}
 
-        public bool CanBeEvaluatedLocally(Expression expression)
-        {
-            return this.Mapping.CanBeEvaluatedLocally(expression);
-        }
+		public bool CanBeEvaluatedLocally(Expression expression)
+		{
+			return this.Mapping.CanBeEvaluatedLocally(expression);
+		}
 
-        public bool CanBeParameter(Expression expression)
-        {
-            Type type = TypeHelper.GetNonNullableType(expression.Type);
-            switch (Type.GetTypeCode(type))
-            {
-                case TypeCode.Object:
-                    if (expression.Type == typeof(Byte[]) ||
-                        expression.Type == typeof(Char[]))
-                        return true;
-                    return false;
-                default:
-                    return true;
-            }
-        }
+		public bool CanBeParameter(Expression expression)
+		{
+			Type type = TypeHelper.GetNonNullableType(expression.Type);
+			switch (Type.GetTypeCode(type))
+			{
+				case TypeCode.Object:
+					if (expression.Type == typeof(Byte[]) || expression.Type == typeof(Char[]))
+					{
+						return true;
+					}
+					return false;
+				default:
+					return true;
+			}
+		}
 
 		public Executor CreateExecutor()
 		{
 			return new Executor(this);
 		}
 
-        public class EntityTable<T> : Query<T>, IEntityTable<T>, IHaveMappingEntity
-        {
-            private readonly MappingEntity entity;
-            private readonly EntityProvider provider;
+		public class EntityTable<T> : Query<T>, IEntityTable<T>, IHaveMappingEntity
+		{
+			private readonly MappingEntity entity;
 
-            public EntityTable(EntityProvider provider, MappingEntity entity)
-                : base(provider, typeof(IEntityTable<T>))
-            {
-                this.provider = provider;
-                this.entity = entity;
-            }
+			private readonly EntityProvider provider;
 
-            public MappingEntity Entity
-            {
-                get { return this.entity; }
-            }
+			public EntityTable(EntityProvider provider, MappingEntity entity)
+				: base(provider, typeof(IEntityTable<T>))
+			{
+				this.provider = provider;
+				this.entity = entity;
+			}
 
-            new public IEntityProvider Provider
-            {
-                get { return this.provider; }
-            }
+			public MappingEntity Entity
+			{
+				get
+				{
+					return this.entity;
+				}
+			}
 
-            public string TableId
-            {
-                get { return this.entity.TableId; }
-            }
+			public new IEntityProvider Provider
+			{
+				get
+				{
+					return this.provider;
+				}
+			}
 
-            public Type EntityType
-            {
-                get { return this.entity.EntityType; }
-            }
+			public string TableId
+			{
+				get
+				{
+					return this.entity.TableId;
+				}
+			}
 
-            public T GetById(object id)
-            {
-                var dbProvider = this.Provider;
-                if (dbProvider != null)
-                {
-                    IEnumerable<object> keys = id as IEnumerable<object>;
-                    if (keys == null)
-                        keys = new object[] { id };
-                    Expression query = ((EntityProvider)dbProvider).Mapping.GetPrimaryKeyQuery(this.entity, this.Expression, keys.Select(v => Expression.Constant(v)).ToArray());
-                    return this.Provider.Execute<T>(query);
-                }
-                return default(T);
-            }
+			public Type EntityType
+			{
+				get
+				{
+					return this.entity.EntityType;
+				}
+			}
 
-            object IEntityTable.GetById(object id)
-            {
-                return this.GetById(id);
-            }
-        }
+			public T GetById(object id)
+			{
+				var dbProvider = this.Provider;
+				if (dbProvider != null)
+				{
+					IEnumerable<object> keys = id as IEnumerable<object>;
+					if (keys == null)
+					{
+						keys = new object[] { id };
+					}
+					Expression query = ((EntityProvider)dbProvider).Mapping.GetPrimaryKeyQuery(
+						this.entity, this.Expression, keys.Select(v => Expression.Constant(v)).ToArray());
+					return this.Provider.Execute<T>(query);
+				}
+				return default(T);
+			}
 
-        public virtual string GetQueryText(Expression expression)
-        {
-            Expression plan = this.GetExecutionPlan(expression);
-            var commands = CommandGatherer.Gather(plan).Select(c => c.CommandText).ToArray();
-            return string.Join("\n\n", commands);
-        }
+			object IEntityTable.GetById(object id)
+			{
+				return this.GetById(id);
+			}
+		}
 
-        class CommandGatherer : DbExpressionVisitor
-        {
-            private readonly List<QueryCommand> commands = new List<QueryCommand>();
+		public virtual string GetQueryText(Expression expression)
+		{
+			Expression plan = this.GetExecutionPlan(expression);
+			var commands = CommandGatherer.Gather(plan).Select(c => c.CommandText).ToArray();
+			return string.Join("\n\n", commands);
+		}
 
-            public static ReadOnlyCollection<QueryCommand> Gather(Expression expression)
-            {
-                var gatherer = new CommandGatherer();
-                gatherer.Visit(expression);
-                return gatherer.commands.AsReadOnly();
-            }
+		private class CommandGatherer : DbExpressionVisitor
+		{
+			private readonly List<QueryCommand> commands = new List<QueryCommand>();
 
-            protected override Expression VisitConstant(ConstantExpression c)
-            {
-                QueryCommand qc = c.Value as QueryCommand;
-                if (qc != null)
-                {
-                    this.commands.Add(qc);
-                }
-                return c;
-            }
-        }
+			public static ReadOnlyCollection<QueryCommand> Gather(Expression expression)
+			{
+				var gatherer = new CommandGatherer();
+				gatherer.Visit(expression);
+				return gatherer.commands.AsReadOnly();
+			}
 
-        public string GetQueryPlan(Expression expression)
-        {
-            Expression plan = this.GetExecutionPlan(expression);
-            return DbExpressionWriter.WriteToString(plan);
-        }
+			protected override Expression VisitConstant(ConstantExpression c)
+			{
+				QueryCommand qc = c.Value as QueryCommand;
+				if (qc != null)
+				{
+					this.commands.Add(qc);
+				}
+				return c;
+			}
+		}
+
+		public string GetQueryPlan(Expression expression)
+		{
+			Expression plan = this.GetExecutionPlan(expression);
+			return DbExpressionWriter.WriteToString(plan);
+		}
 
 		private QueryTranslator CreateTranslator()
-        {
-            return new QueryTranslator(this.Mapping, this.policy);
-        }
+		{
+			return new QueryTranslator(this.Mapping, this.policy);
+		}
 
 		public void DoConnected(Action action)
 		{
@@ -359,7 +396,7 @@ namespace IQToolkit.Data
 			this.StartUsingConnection();
 			try
 			{
-				DbCommand cmd = this.Connection.CreateCommand();
+				SqliteCommand cmd = this.Connection.CreateCommand();
 				cmd.CommandText = commandText;
 				return cmd.ExecuteNonQuery();
 			}
@@ -369,142 +406,160 @@ namespace IQToolkit.Data
 			}
 		}
 
-        /// <summary>
-        /// Execute the query expression (does translation, etc.)
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        public virtual object Execute(Expression expression)
-        {
-            LambdaExpression lambda = expression as LambdaExpression;
+		/// <summary>
+		/// Execute the query expression (does translation, etc.)
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		public virtual object Execute(Expression expression)
+		{
+			LambdaExpression lambda = expression as LambdaExpression;
 
-            if (lambda == null && this.cache != null && expression.NodeType != ExpressionType.Constant)
-            {
-                return this.cache.Execute(expression);
-            }
+			if (lambda == null && this.cache != null && expression.NodeType != ExpressionType.Constant)
+			{
+				return this.cache.Execute(expression);
+			}
 
-            Expression plan = this.GetExecutionPlan(expression);
+			Expression plan = this.GetExecutionPlan(expression);
 
-            if (lambda != null)
-            {
-                // compile & return the execution plan so it can be used multiple times
-                LambdaExpression fn = Expression.Lambda(lambda.Type, plan, lambda.Parameters);
+			if (lambda != null)
+			{
+				// compile & return the execution plan so it can be used multiple times
+				LambdaExpression fn = Expression.Lambda(lambda.Type, plan, lambda.Parameters);
 #if NOREFEMIT
                     return ExpressionEvaluator.CreateDelegate(fn);
 #else
-                return fn.Compile();
+				return fn.Compile();
 #endif
-            }
-            else
-            {
-                // compile the execution plan and invoke it
-                Expression<Func<object>> efn = Expression.Lambda<Func<object>>(Expression.Convert(plan, typeof(object)));
+			}
+			else
+			{
+				// compile the execution plan and invoke it
+				Expression<Func<object>> efn = Expression.Lambda<Func<object>>(Expression.Convert(plan, typeof(object)));
 #if NOREFEMIT
                     return ExpressionEvaluator.Eval(efn, new object[] { });
 #else
-                Func<object> fn = efn.Compile();
-                return fn();
+				Func<object> fn = efn.Compile();
+				return fn();
 #endif
-            }
-        }
+			}
+		}
 
-        /// <summary>
-        /// Convert the query expression into an execution plan
-        /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
-        public Expression GetExecutionPlan(Expression expression)
-        {
-            // strip off lambda for now
-            LambdaExpression lambda = expression as LambdaExpression;
-            if (lambda != null)
-                expression = lambda.Body;
+		/// <summary>
+		/// Convert the query expression into an execution plan
+		/// </summary>
+		/// <param name="expression"></param>
+		/// <returns></returns>
+		public Expression GetExecutionPlan(Expression expression)
+		{
+			// strip off lambda for now
+			LambdaExpression lambda = expression as LambdaExpression;
+			if (lambda != null)
+			{
+				expression = lambda.Body;
+			}
 
-            QueryTranslator translator = this.CreateTranslator();
+			QueryTranslator translator = this.CreateTranslator();
 
-            // translate query into client & server parts
-            Expression translation = translator.Translate(expression);
+			// translate query into client & server parts
+			Expression translation = translator.Translate(expression);
 
-            var parameters = lambda != null ? lambda.Parameters : null;
-            Expression provider = this.Find(expression, parameters, typeof(EntityProvider));
-            if (provider == null)
-            {
-                Expression rootQueryable = this.Find(expression, parameters, typeof(IQueryable));
-                provider = Expression.Property(rootQueryable, typeof(IQueryable).GetProperty("Provider"));
-            }
+			var parameters = lambda != null ? lambda.Parameters : null;
+			Expression provider = this.Find(expression, parameters, typeof(EntityProvider));
+			if (provider == null)
+			{
+				Expression rootQueryable = this.Find(expression, parameters, typeof(IQueryable));
+				provider = Expression.Property(rootQueryable, typeof(IQueryable).GetProperty("Provider"));
+			}
 
-            return translator.Police.BuildExecutionPlan(translation, provider);
-        }
+			return translator.Police.BuildExecutionPlan(translation, provider);
+		}
 
-        private Expression Find(Expression expression, IList<ParameterExpression> parameters, Type type)
-        {
-            if (parameters != null)
-            {
-                Expression found = parameters.FirstOrDefault(p => type.IsAssignableFrom(p.Type));
-                if (found != null)
-                    return found;
-            }
-            return TypedSubtreeFinder.Find(expression, type);
-        }
-           
-        public static QueryMapping GetMapping(string mappingId)
-        {
-            if (mappingId != null)
-            {
-                Type type = FindLoadedType(mappingId);
-                if (type != null)
-                {
-                    return new AttributeMapping(type);
-                }
-                if (File.Exists(mappingId))
-                {
-                    return XmlMapping.FromXml(File.ReadAllText(mappingId));
-                }
-            }
-            return new ImplicitMapping();
-        }
+		private Expression Find(Expression expression, IList<ParameterExpression> parameters, Type type)
+		{
+			if (parameters != null)
+			{
+				Expression found = parameters.FirstOrDefault(p => type.IsAssignableFrom(p.Type));
+				if (found != null)
+				{
+					return found;
+				}
+			}
+			return TypedSubtreeFinder.Find(expression, type);
+		}
 
-        private static Type FindLoadedType(string typeName)
-        {
-            foreach (var assem in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var type = assem.GetType(typeName, false, true);
-                if (type != null)
-                    return type;
-            }
-            return null;
-        }
+		public static QueryMapping GetMapping(string mappingId)
+		{
+			if (mappingId != null)
+			{
+				Type type = FindLoadedType(mappingId);
+				if (type != null)
+				{
+					return new AttributeMapping(type);
+				}
+			}
+			return new ImplicitMapping();
+		}
+
+		private static Type FindLoadedType(string typeName)
+		{
+			foreach (var assem in AppDomain.CurrentDomain.GetAssemblies())
+			{
+				var type = assem.GetType(typeName, false, true);
+				if (type != null)
+				{
+					return type;
+				}
+			}
+			return null;
+		}
 
 		private bool ActionOpenedConnection { get; set; }
 
-		Dictionary<QueryCommand, SqliteCommand> commandCache = new Dictionary<QueryCommand, SqliteCommand>();
+		private Dictionary<QueryCommand, SqliteCommand> commandCache = new Dictionary<QueryCommand, SqliteCommand>();
 
-		private readonly DbConnection connection;
-		DbTransaction transaction;
-		IsolationLevel isolation = IsolationLevel.ReadCommitted;
+		private readonly SqliteConnection connection;
 
-		int nConnectedActions = 0;
+		private DbTransaction transaction;
 
-		public DbConnection Connection
+		private IsolationLevel isolation = IsolationLevel.ReadCommitted;
+
+		private int nConnectedActions = 0;
+
+		public SqliteConnection Connection
 		{
-			get { return this.connection; }
+			get
+			{
+				return this.connection;
+			}
 		}
 
 		public DbTransaction Transaction
 		{
-			get { return this.transaction; }
+			get
+			{
+				return this.transaction;
+			}
 			set
 			{
 				if (value != null && value.Connection != this.connection)
+				{
 					throw new InvalidOperationException("Transaction does not match connection.");
+				}
 				this.transaction = value;
 			}
 		}
 
 		public IsolationLevel Isolation
 		{
-			get { return this.isolation; }
-			set { this.isolation = value; }
+			get
+			{
+				return this.isolation;
+			}
+			set
+			{
+				this.isolation = value;
+			}
 		}
 
 		private void StartUsingConnection()
@@ -528,43 +583,36 @@ namespace IQToolkit.Data
 			}
 		}
 
-		public class Executor
+		public sealed class Executor
 		{
 			public Executor(EntityProvider provider)
 			{
 				this.Provider = provider;
 			}
 
-			int rowsAffected;
-
 			public EntityProvider Provider { get; private set; }
 
-			public virtual int RowsAffected
+			public int RowsAffected { get; private set; }
+
+			private bool ActionOpenedConnection
 			{
-				get { return this.rowsAffected; }
+				get
+				{
+					return this.Provider.ActionOpenedConnection;
+				}
 			}
 
-			protected virtual bool BufferResultRows
-			{
-				get { return false; }
-			}
-
-			protected bool ActionOpenedConnection
-			{
-				get { return this.Provider.ActionOpenedConnection; }
-			}
-
-			protected void StartUsingConnection()
+			private void StartUsingConnection()
 			{
 				this.Provider.StartUsingConnection();
 			}
 
-			protected void StopUsingConnection()
+			private void StopUsingConnection()
 			{
 				this.Provider.StopUsingConnection();
 			}
 
-			public virtual object Convert(object value, Type type)
+			public object Convert(object value, Type type)
 			{
 				if (value == null)
 				{
@@ -578,30 +626,31 @@ namespace IQToolkit.Data
 					{
 						if (vtype == typeof(string))
 						{
-							return Enum.Parse(type, (string)value);
+							return Enum.Parse(type, (string)value, true);
 						}
 						else
 						{
 							Type utype = Enum.GetUnderlyingType(type);
 							if (utype != vtype)
 							{
-								value = System.Convert.ChangeType(value, utype);
+								value = System.Convert.ChangeType(value, utype, CultureInfo.InvariantCulture);
 							}
 							return Enum.ToObject(type, value);
 						}
 					}
-					return System.Convert.ChangeType(value, type);
+					return System.Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
 				}
 				return value;
 			}
 
-			public virtual IEnumerable<T> Execute<T>(QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
+			public IEnumerable<T> Execute<T>(
+				QueryCommand command, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
 			{
 				this.LogCommand(command, paramValues);
 				this.StartUsingConnection();
 				try
 				{
-					DbCommand cmd = this.GetCommand(command, paramValues);
+					SqliteCommand cmd = this.GetCommand(command, paramValues);
 					DbDataReader reader = this.ExecuteReader(cmd);
 					var result = Project(reader, fnProjector, entity, true);
 					if (this.Provider.ActionOpenedConnection)
@@ -620,24 +669,13 @@ namespace IQToolkit.Data
 				}
 			}
 
-			protected virtual DbDataReader ExecuteReader(DbCommand command)
+			private DbDataReader ExecuteReader(SqliteCommand command)
 			{
-				var reader = command.ExecuteReader();
-				if (this.BufferResultRows)
-				{
-					// use data table to buffer results
-					var ds = new DataSet();
-					ds.EnforceConstraints = false;
-					var table = new DataTable();
-					ds.Tables.Add(table);
-					ds.EnforceConstraints = false;
-					table.Load(reader);
-					reader = table.CreateDataReader();
-				}
-				return reader;
+				return command.ExecuteReader();
 			}
 
-			protected virtual IEnumerable<T> Project<T>(DbDataReader reader, Func<FieldReader, T> fnProjector, MappingEntity entity, bool closeReader)
+			private IEnumerable<T> Project<T>(
+				DbDataReader reader, Func<FieldReader, T> fnProjector, MappingEntity entity, bool closeReader)
 			{
 				var freader = new FieldReader(this, reader);
 				try
@@ -656,15 +694,15 @@ namespace IQToolkit.Data
 				}
 			}
 
-			public virtual int ExecuteCommand(QueryCommand query, object[] paramValues)
+			public int ExecuteCommand(QueryCommand query, object[] paramValues)
 			{
 				this.LogCommand(query, paramValues);
 				this.StartUsingConnection();
 				try
 				{
-					DbCommand cmd = this.GetCommand(query, paramValues);
-					this.rowsAffected = cmd.ExecuteNonQuery();
-					return this.rowsAffected;
+					SqliteCommand cmd = this.GetCommand(query, paramValues);
+					this.RowsAffected = cmd.ExecuteNonQuery();
+					return this.RowsAffected;
 				}
 				finally
 				{
@@ -672,7 +710,8 @@ namespace IQToolkit.Data
 				}
 			}
 
-			public virtual IEnumerable<int> ExecuteBatch(QueryCommand query, IEnumerable<object[]> paramSets, int batchSize, bool stream)
+			public IEnumerable<int> ExecuteBatch(
+				QueryCommand query, IEnumerable<object[]> paramSets, int batchSize, bool stream)
 			{
 				this.StartUsingConnection();
 				try
@@ -696,18 +735,24 @@ namespace IQToolkit.Data
 			private IEnumerable<int> ExecuteBatch(QueryCommand query, IEnumerable<object[]> paramSets)
 			{
 				this.LogCommand(query, null);
-				DbCommand cmd = this.GetCommand(query, null);
+				SqliteCommand cmd = this.GetCommand(query, null);
 				foreach (var paramValues in paramSets)
 				{
 					this.LogParameters(query, paramValues);
 					this.LogMessage("");
 					this.SetParameterValues(query, cmd, paramValues);
-					this.rowsAffected = cmd.ExecuteNonQuery();
-					yield return this.rowsAffected;
+					this.RowsAffected = cmd.ExecuteNonQuery();
+					yield return this.RowsAffected;
 				}
 			}
 
-			public virtual IEnumerable<T> ExecuteBatch<T>(QueryCommand query, IEnumerable<object[]> paramSets, Func<FieldReader, T> fnProjector, MappingEntity entity, int batchSize, bool stream)
+			public IEnumerable<T> ExecuteBatch<T>(
+				QueryCommand query,
+				IEnumerable<object[]> paramSets,
+				Func<FieldReader, T> fnProjector,
+				MappingEntity entity,
+				int batchSize,
+				bool stream)
 			{
 				this.StartUsingConnection();
 				try
@@ -728,10 +773,11 @@ namespace IQToolkit.Data
 				}
 			}
 
-			private IEnumerable<T> ExecuteBatch<T>(QueryCommand query, IEnumerable<object[]> paramSets, Func<FieldReader, T> fnProjector, MappingEntity entity)
+			private IEnumerable<T> ExecuteBatch<T>(
+				QueryCommand query, IEnumerable<object[]> paramSets, Func<FieldReader, T> fnProjector, MappingEntity entity)
 			{
 				this.LogCommand(query, null);
-				DbCommand cmd = this.GetCommand(query, null);
+				SqliteCommand cmd = this.GetCommand(query, null);
 				cmd.Prepare();
 				foreach (var paramValues in paramSets)
 				{
@@ -759,13 +805,14 @@ namespace IQToolkit.Data
 				}
 			}
 
-			public virtual IEnumerable<T> ExecuteDeferred<T>(QueryCommand query, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
+			public IEnumerable<T> ExecuteDeferred<T>(
+				QueryCommand query, Func<FieldReader, T> fnProjector, MappingEntity entity, object[] paramValues)
 			{
 				this.LogCommand(query, paramValues);
 				this.StartUsingConnection();
 				try
 				{
-					DbCommand cmd = this.GetCommand(query, paramValues);
+					SqliteCommand cmd = this.GetCommand(query, paramValues);
 					var reader = this.ExecuteReader(cmd);
 					var freader = new FieldReader(this, reader);
 					try
@@ -789,7 +836,7 @@ namespace IQToolkit.Data
 			/// <summary>
 			/// Get an ADO command object initialized with the command-text and parameters
 			/// </summary>
-			protected virtual DbCommand GetCommand(QueryCommand query, object[] paramValues)
+			private SqliteCommand GetCommand(QueryCommand query, object[] paramValues)
 			{
 				SqliteCommand cmd;
 				if (!this.Provider.commandCache.TryGetValue(query, out cmd))
@@ -814,7 +861,7 @@ namespace IQToolkit.Data
 				return cmd;
 			}
 
-			protected virtual void SetParameterValues(QueryCommand query, DbCommand command, object[] paramValues)
+			private void SetParameterValues(QueryCommand query, SqliteCommand command, object[] paramValues)
 			{
 				if (query.Parameters.Count > 0 && command.Parameters.Count == 0)
 				{
@@ -829,7 +876,7 @@ namespace IQToolkit.Data
 					{
 						DbParameter p = command.Parameters[i];
 						if (p.Direction == System.Data.ParameterDirection.Input
-						 || p.Direction == System.Data.ParameterDirection.InputOutput)
+						    || p.Direction == System.Data.ParameterDirection.InputOutput)
 						{
 							p.Value = paramValues[i] ?? DBNull.Value;
 						}
@@ -837,11 +884,13 @@ namespace IQToolkit.Data
 				}
 			}
 
-			protected virtual void AddParameter(DbCommand command, QueryParameter parameter, object value)
+			private void AddParameter(SqliteCommand command, QueryParameter parameter, object value)
 			{
 				DbQueryType qt = parameter.QueryType;
 				if (qt == null)
+				{
 					qt = DbTypeSystem.GetColumnType(parameter.Type);
+				}
 				var p = ((SqliteCommand)command).Parameters.Add(parameter.Name, ((DbQueryType)qt).DbType, qt.Length);
 				if (qt.Length != 0)
 				{
@@ -854,7 +903,7 @@ namespace IQToolkit.Data
 				p.Value = value ?? DBNull.Value;
 			}
 
-			protected virtual void GetParameterValues(DbCommand command, object[] paramValues)
+			private void GetParameterValues(SqliteCommand command, object[] paramValues)
 			{
 				if (paramValues != null)
 				{
@@ -864,14 +913,16 @@ namespace IQToolkit.Data
 						{
 							object value = command.Parameters[i].Value;
 							if (value == DBNull.Value)
+							{
 								value = null;
+							}
 							paramValues[i] = value;
 						}
 					}
 				}
 			}
 
-			protected virtual void LogMessage(string message)
+			private void LogMessage(string message)
 			{
 				if (this.Provider.Log != null)
 				{
@@ -884,7 +935,7 @@ namespace IQToolkit.Data
 			/// </summary>
 			/// <param name="command"></param>
 			/// <param name="paramValues"></param>
-			protected virtual void LogCommand(QueryCommand command, object[] paramValues)
+			private void LogCommand(QueryCommand command, object[] paramValues)
 			{
 				if (this.Provider.Log != null)
 				{
@@ -897,7 +948,7 @@ namespace IQToolkit.Data
 				}
 			}
 
-			protected virtual void LogParameters(QueryCommand command, object[] paramValues)
+			private void LogParameters(QueryCommand command, object[] paramValues)
 			{
 				if (this.Provider.Log != null && paramValues != null)
 				{
@@ -918,5 +969,5 @@ namespace IQToolkit.Data
 				}
 			}
 		}
-    }
+	}
 }
