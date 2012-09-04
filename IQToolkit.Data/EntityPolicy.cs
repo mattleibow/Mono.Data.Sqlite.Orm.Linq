@@ -170,7 +170,7 @@ namespace IQToolkit.Data
 		/// </summary>
 		/// <param name="member"></param>
 		/// <returns></returns>
-        public virtual bool IsIncluded(MemberInfo member)
+        public bool IsIncluded(MemberInfo member)
         {
             return this.included.Contains(member);
         }
@@ -181,12 +181,12 @@ namespace IQToolkit.Data
 		/// </summary>
 		/// <param name="member"></param>
 		/// <returns></returns>
-        public virtual bool IsDeferLoaded(MemberInfo member)
+        public bool IsDeferLoaded(MemberInfo member)
         {
             return this.deferred.Contains(member);
         }
 
-        public virtual QueryPolice CreatePolice(QueryTranslator translator)
+        public QueryPolice CreatePolice(QueryTranslator translator)
         {
 			return new QueryPolice(this, translator);
         }

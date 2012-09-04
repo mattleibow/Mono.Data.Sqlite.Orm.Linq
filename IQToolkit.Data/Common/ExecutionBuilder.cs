@@ -210,7 +210,7 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual Expression Parameterize(Expression expression)
+	    private Expression Parameterize(Expression expression)
         {
             if (this.variableMap.Count > 0)
             {
@@ -285,7 +285,7 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual Expression BuildExecuteBatch(BatchExpression batch)
+	    private Expression BuildExecuteBatch(BatchExpression batch)
         {
             // parameterize query
             Expression operation = this.Parameterize(batch.Operation.Body);
@@ -348,7 +348,7 @@ namespace IQToolkit.Data.Common
             }
         }
 
-        protected virtual bool IsMultipleCommands(CommandExpression command)
+	    private bool IsMultipleCommands(CommandExpression command)
         {
             if (command == null)
                 return false;
@@ -466,8 +466,8 @@ namespace IQToolkit.Data.Common
             // probably bad if we get here since we must not allow mulitple commands
             throw new InvalidOperationException("Declaration query not allowed for this langauge");
         }
-        
-        protected virtual Expression BuildExecuteCommand(CommandExpression command)
+
+	    private Expression BuildExecuteCommand(CommandExpression command)
         {
             // parameterize query
             var expression = this.Parameterize(command);

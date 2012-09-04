@@ -78,7 +78,6 @@
     <Compile Include="Base\Query.cs" />
     <Compile Include="Base\QueryCache.cs" />
     <Compile Include="Base\QueryCompiler.cs" />
-    <Compile Include="Base\QueryProvider.cs" />
     <Compile Include="Base\ReadOnlyExtensions.cs" />
     <Compile Include="Base\ReflectionExtensions.cs" />
     <Compile Include="Base\ScopedDictionary.cs" />

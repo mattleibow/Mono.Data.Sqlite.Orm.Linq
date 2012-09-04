@@ -43,7 +43,7 @@ namespace IQToolkit.Data.Common
 			this.forDebug = forDebug;
 		}
 
-		protected SqlFormatter(QueryLanguage language)
+		private SqlFormatter(QueryLanguage language)
 			: this(language, false)
 		{
 		}
@@ -72,7 +72,7 @@ namespace IQToolkit.Data.Common
 			return this.sb.ToString();
 		}
 
-		protected virtual QueryLanguage Language
+		private QueryLanguage Language
 		{
 			get
 			{
@@ -80,7 +80,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected bool HideColumnAliases
+		private bool HideColumnAliases
 		{
 			get
 			{
@@ -92,7 +92,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected bool HideTableAliases
+		private bool HideTableAliases
 		{
 			get
 			{
@@ -104,7 +104,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected bool IsNested
+		private bool IsNested
 		{
 			get
 			{
@@ -116,7 +116,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected bool ForDebug
+		private bool ForDebug
 		{
 			get
 			{
@@ -124,7 +124,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected enum Indentation
+		private enum Indentation
 		{
 			Same,
 
@@ -145,51 +145,51 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected void Write(object value)
+		private void Write(object value)
 		{
 			this.sb.Append(value);
 		}
 
-		protected virtual void WriteParameterName(string name)
+		private void WriteParameterName(string name)
 		{
 			this.Write("@" + name);
 		}
 
-		protected virtual void WriteVariableName(string name)
+		private void WriteVariableName(string name)
 		{
 			this.WriteParameterName(name);
 		}
 
-		protected virtual void WriteAsAliasName(string aliasName)
+		private void WriteAsAliasName(string aliasName)
 		{
 			this.Write("AS ");
 			this.WriteAliasName(aliasName);
 		}
 
-		protected virtual void WriteAliasName(string aliasName)
+		private void WriteAliasName(string aliasName)
 		{
 			this.Write(aliasName);
 		}
 
-		protected virtual void WriteAsColumnName(string columnName)
+		private void WriteAsColumnName(string columnName)
 		{
 			this.Write("AS ");
 			this.WriteColumnName(columnName);
 		}
 
-		protected virtual void WriteColumnName(string columnName)
+		private void WriteColumnName(string columnName)
 		{
 			string name = (this.Language != null) ? QueryLanguage.Quote(columnName) : columnName;
 			this.Write(name);
 		}
 
-		protected virtual void WriteTableName(string tableName)
+		private void WriteTableName(string tableName)
 		{
 			string name = (this.Language != null) ? QueryLanguage.Quote(tableName) : tableName;
 			this.Write(name);
 		}
 
-		protected void WriteLine(Indentation style)
+		private void WriteLine(Indentation style)
 		{
 			sb.AppendLine();
 			this.Indent(style);
@@ -199,7 +199,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected void Indent(Indentation style)
+		private void Indent(Indentation style)
 		{
 			if (style == Indentation.Inner)
 			{
@@ -212,7 +212,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual string GetAliasName(TableAlias alias)
+		private string GetAliasName(TableAlias alias)
 		{
 			string name;
 			if (!this.aliases.TryGetValue(alias, out name))
@@ -223,7 +223,7 @@ namespace IQToolkit.Data.Common
 			return name;
 		}
 
-		protected void AddAlias(TableAlias alias)
+		private void AddAlias(TableAlias alias)
 		{
 			string name;
 			if (!this.aliases.TryGetValue(alias, out name))
@@ -233,7 +233,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual void AddAliases(Expression expr)
+		private void AddAliases(Expression expr)
 		{
 			AliasedExpression ax = expr as AliasedExpression;
 			if (ax != null)
@@ -768,7 +768,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual bool IsInteger(Type type)
+		private bool IsInteger(Type type)
 		{
 			return TypeHelper.IsInteger(type);
 		}
@@ -1062,7 +1062,7 @@ namespace IQToolkit.Data.Common
 			return b;
 		}
 
-		protected virtual string GetOperator(string methodName)
+		private string GetOperator(string methodName)
 		{
 			switch (methodName)
 			{
@@ -1083,7 +1083,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual string GetOperator(UnaryExpression u)
+		private string GetOperator(UnaryExpression u)
 		{
 			switch (u.NodeType)
 			{
@@ -1099,7 +1099,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual string GetOperator(BinaryExpression b)
+		private string GetOperator(BinaryExpression b)
 		{
 			if (b.NodeType == ExpressionType.Add && b.Type == typeof(string))
 			{
@@ -1150,12 +1150,12 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual bool IsBoolean(Type type)
+		private bool IsBoolean(Type type)
 		{
 			return type == typeof(bool) || type == typeof(bool?);
 		}
 
-		protected virtual bool IsPredicate(Expression expr)
+		private bool IsPredicate(Expression expr)
 		{
 			switch (expr.NodeType)
 			{
@@ -1184,7 +1184,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual Expression VisitPredicate(Expression expr)
+		private Expression VisitPredicate(Expression expr)
 		{
 			this.Visit(expr);
 			if (!IsPredicate(expr))
@@ -1194,7 +1194,7 @@ namespace IQToolkit.Data.Common
 			return expr;
 		}
 
-		protected virtual Expression VisitValue(Expression expr)
+		private Expression VisitValue(Expression expr)
 		{
 			if (IsPredicate(expr))
 			{
@@ -1251,7 +1251,7 @@ namespace IQToolkit.Data.Common
 			return c;
 		}
 
-		protected virtual void WriteValue(object value)
+		private void WriteValue(object value)
 		{
 			if (value == null)
 			{
@@ -1391,14 +1391,14 @@ namespace IQToolkit.Data.Common
 			return select;
 		}
 
-		protected virtual void WriteTopClause(Expression expression)
+		private void WriteTopClause(Expression expression)
 		{
 			this.Write("TOP (");
 			this.Visit(expression);
 			this.Write(") ");
 		}
 
-		protected virtual void WriteColumns(ReadOnlyCollection<ColumnDeclaration> columns)
+		private void WriteColumns(ReadOnlyCollection<ColumnDeclaration> columns)
 		{
 			if (columns.Count == 0)
 			{
@@ -1507,17 +1507,17 @@ namespace IQToolkit.Data.Common
 			return join;
 		}
 
-		protected virtual Expression VisitJoinLeft(Expression source)
+		private Expression VisitJoinLeft(Expression source)
 		{
 			return this.VisitSource(source);
 		}
 
-		protected virtual Expression VisitJoinRight(Expression source)
+		private Expression VisitJoinRight(Expression source)
 		{
 			return this.VisitSource(source);
 		}
 
-		protected virtual void WriteAggregateName(string aggregateName)
+		private void WriteAggregateName(string aggregateName)
 		{
 			switch (aggregateName)
 			{
@@ -1533,7 +1533,7 @@ namespace IQToolkit.Data.Common
 			}
 		}
 
-		protected virtual bool RequiresAsteriskWhenNoArgument(string aggregateName)
+		private bool RequiresAsteriskWhenNoArgument(string aggregateName)
 		{
 			return aggregateName == "Count" || aggregateName == "LongCount";
 		}
@@ -1731,7 +1731,7 @@ namespace IQToolkit.Data.Common
 			return vex;
 		}
 
-		protected virtual void VisitStatement(Expression expression)
+		private void VisitStatement(Expression expression)
 		{
 			var p = expression as ProjectionExpression;
 			if (p != null)

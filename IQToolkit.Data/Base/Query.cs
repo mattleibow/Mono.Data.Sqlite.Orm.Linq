@@ -11,14 +11,16 @@ using System.Text;
 
 namespace IQToolkit
 {
-    /// <summary>
+	using IQToolkit.Data;
+
+	/// <summary>
     /// A default implementation of IQueryable for use with QueryProvider
     /// </summary>
     public class Query<T> : IQueryable<T>, IQueryable, IEnumerable<T>, IEnumerable, IOrderedQueryable<T>, IOrderedQueryable
     {
-		QueryProvider provider;
+		EntityProvider provider;
 
-	    public Query(QueryProvider provider, Type staticType)
+		public Query(EntityProvider provider, Type staticType)
         {
             if (provider == null)
             {
@@ -28,7 +30,7 @@ namespace IQToolkit
             this.Expression = staticType != null ? Expression.Constant(this, staticType) : Expression.Constant(this);
         }
 
-        public Query(QueryProvider provider, Expression expression)
+		public Query(EntityProvider provider, Expression expression)
         {
             if (provider == null)
             {

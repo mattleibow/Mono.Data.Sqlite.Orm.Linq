@@ -10,21 +10,19 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Data;
+using System.Data.Common;
+using System.Threading.Tasks;
+using Mono.Data.Sqlite;
+using IQToolkit.Data.Common;
+using IQToolkit.Data.Mapping;
 
 namespace IQToolkit.Data
 {
-	using System.Data;
-	using System.Data.Common;
-
-	using Common;
-    using Mapping;
-
-	using Mono.Data.Sqlite;
-
 	/// <summary>
     /// A LINQ IQueryable query provider that executes database queries over a DbConnection
     /// </summary>
-    public class EntityProvider : QueryProvider, IEntityProvider
+	public class EntityProvider : IAsyncQueryProvider, IEntityProvider, IQueryProvider
 	{
 		public EntityProvider New(DbConnection connection, QueryMapping mapping, EntityPolicy policy)
 		{
@@ -86,6 +84,44 @@ namespace IQToolkit.Data
 		}
 	    EntityPolicy policy;
 
+		IQueryable<S> IQueryProvider.CreateQuery<S>(Expression expression)
+		{
+			return new Query<S>(this, expression);
+		}
+
+		IQueryable IQueryProvider.CreateQuery(Expression expression)
+		{
+			Type elementType = TypeHelper.GetElementType(expression.Type);
+			try
+			{
+				return (IQueryable)Activator.CreateInstance(typeof(Query<>).MakeGenericType(elementType), new object[] { this, expression });
+			}
+			catch (TargetInvocationException tie)
+			{
+				throw tie.InnerException;
+			}
+		}
+
+		S IQueryProvider.Execute<S>(Expression expression)
+		{
+			return (S)this.Execute(expression);
+		}
+
+		object IQueryProvider.Execute(Expression expression)
+		{
+			return this.Execute(expression);
+		}
+		
+		public virtual Task<object> ExecuteAsync(Expression expression)
+		{
+			return Task.Run(() => this.Execute(expression));
+		}
+
+		public virtual Task<S> ExecuteAsync<S>(Expression expression)
+		{
+			return Task.Run<S>(() => (S)this.Execute(expression));
+		}
+
 	    QueryCache cache;
         private readonly Dictionary<MappingEntity, IEntityTable> tables;
 
@@ -128,7 +164,7 @@ namespace IQToolkit.Data
             return table;
         }
 
-        protected virtual IEntityTable CreateTable(MappingEntity entity)
+		private IEntityTable CreateTable(MappingEntity entity)
         {
             return (IEntityTable) Activator.CreateInstance(
                 typeof(EntityTable<>).MakeGenericType(entity.ElementType), 
@@ -136,22 +172,22 @@ namespace IQToolkit.Data
                 );
         }
 
-        public virtual IEntityTable<T> GetTable<T>()
+        public IEntityTable<T> GetTable<T>()
         {
             return GetTable<T>(null);
         }
 
-        public virtual IEntityTable<T> GetTable<T>(string tableId)
+        public IEntityTable<T> GetTable<T>(string tableId)
         {
             return (IEntityTable<T>)this.GetTable(typeof(T), tableId);
         }
 
-        public virtual IEntityTable GetTable(Type type)
+        public IEntityTable GetTable(Type type)
         {
             return GetTable(type, null);
         }
 
-        public virtual IEntityTable GetTable(Type type, string tableId)
+        public IEntityTable GetTable(Type type, string tableId)
         {
             return this.GetTable(this.Mapping.GetEntity(type, tableId));
         }
@@ -161,7 +197,7 @@ namespace IQToolkit.Data
             return this.Mapping.CanBeEvaluatedLocally(expression);
         }
 
-        public virtual bool CanBeParameter(Expression expression)
+        public bool CanBeParameter(Expression expression)
         {
             Type type = TypeHelper.GetNonNullableType(expression.Type);
             switch (Type.GetTypeCode(type))
@@ -233,7 +269,7 @@ namespace IQToolkit.Data
             }
         }
 
-        public override string GetQueryText(Expression expression)
+        public virtual string GetQueryText(Expression expression)
         {
             Expression plan = this.GetExecutionPlan(expression);
             var commands = CommandGatherer.Gather(plan).Select(c => c.CommandText).ToArray();
@@ -268,7 +304,7 @@ namespace IQToolkit.Data
             return DbExpressionWriter.WriteToString(this.Language, plan);
         }
 
-        protected virtual QueryTranslator CreateTranslator()
+		private QueryTranslator CreateTranslator()
         {
             return new QueryTranslator(this.Language, this.Mapping, this.policy);
         }
@@ -341,7 +377,7 @@ namespace IQToolkit.Data
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public override object Execute(Expression expression)
+        public virtual object Execute(Expression expression)
         {
             LambdaExpression lambda = expression as LambdaExpression;
 
@@ -380,7 +416,7 @@ namespace IQToolkit.Data
         /// </summary>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public virtual Expression GetExecutionPlan(Expression expression)
+        public Expression GetExecutionPlan(Expression expression)
         {
             // strip off lambda for now
             LambdaExpression lambda = expression as LambdaExpression;

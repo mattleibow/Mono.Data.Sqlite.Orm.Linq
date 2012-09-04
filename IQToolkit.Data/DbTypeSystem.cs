@@ -143,7 +143,7 @@ namespace IQToolkit.Data
 
 		public static DbQueryType NewType(SqlDbType type, bool isNotNull, int length, short precision, short scale)
         {
-            return new DbQueryType(type, isNotNull, length, precision, scale);
+            return new DbQueryType(type, length, scale);
         }
 
         public static SqlDbType GetSqlType(string typeName)
@@ -293,29 +293,23 @@ namespace IQToolkit.Data
         }
 	}
 
-    public class DbQueryType 
-    {
-	    public DbQueryType(SqlDbType dbType, bool notNull, int length, short precision, short scale)
+    public class DbQueryType
+	{
+		private readonly SqlDbType sqlDbType;
+
+	    public DbQueryType(SqlDbType dbType, int length, short scale)
         {
-            this.SqlDbType = dbType;
-            this.NotNull = notNull;
+            this.sqlDbType = dbType;
             this.Length = length;
-            this.Precision = precision;
             this.Scale = scale;
         }
 
         public DbType DbType
         {
-            get { return DbTypeSystem.GetDbType(this.SqlDbType); }
+            get { return DbTypeSystem.GetDbType(this.sqlDbType); }
         }
 
-	    public SqlDbType SqlDbType { get; private set; }
-
 	    public int Length { get; private set; }
-
-	    public bool NotNull { get; private set; }
-
-	    public short Precision { get; private set; }
 
 	    public short Scale { get; private set; }
     } 
